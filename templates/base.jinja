@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="{{ description }}">
+    <meta name="author" content="Samuel Colvin">
+    <link rel="icon" href="{{ 'favicon.png'|static }}">
+
+    <title>{{ title }}</title>
+
+    {# until we compile ourselves #}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="{{ 'theme.css'|static }}" rel="stylesheet">
+  </head>
+
+  <body>
+    <nav class="navbar navbar-fixed-top navbar-dark bg-inverse">
+      {# TODO search here #}
+      <ul class="nav navbar-nav pull-right">
+        <li class="nav-item">
+          <a class="nav-link" href="#">About</a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="container">
+
+      <div>
+        <h1>{{ title }}</h1>
+        <p class="lead">
+          Use this document as a way to quickly start any new project.<br>
+          All you get is this text and a mostly barebones HTML document.
+        </p>
+      </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
+  </body>
+</html>
