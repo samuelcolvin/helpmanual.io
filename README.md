@@ -3,10 +3,11 @@
 
 # Categories:
 
-* `commands` - eg. thing installed with `apt`
+* `commands` - eg. things installed with `apt`
 * `builtins` - eg. `compgen -b`
 * pypi
 * npm
+* perhaps other packages managers eg. PHP, CRAN.
 * specific commands git, docker, sublime, atom, aws, dropbox
 
 # Processing pipeline
@@ -43,15 +44,38 @@ the output can then be collected.
 
 Need one metadata file summarizing what's installed and collected, but also updated here.
 
+**Need some way of avoiding custom data being overwritten by auto generation.**
+
 This to include in metadata:
 * name
 * description
-* source eg. apt or npm
+* version, might end up with multiple
+* source eg. apt or npm, man and man type
 * data eg. man, help, version, bare call
-* date updated
+* date generated
+* data written
 * author
 * website
+* command - used to link `compgen` to source
+* path inside `./raw`
+* uri
+* path to any extra data for this package.
 * sub commands: git, docker, apt
 * perhaps some way to control cross page links
 
-## 4. Generate html
+## 4. Generate html content
+
+This is not the full page, just the content specific to each package.
+
+Should include:
+* prepare data for search index
+* prepare data for sitemap.xml
+* inserting links between documents
+
+We might want to persist this data in VCS for performance and for different versions.
+
+## 5. Generate final html pages
+
+This has changed
+
+Create pretty HTML, not saved just sent to server, should include search index and sitemap.xml
