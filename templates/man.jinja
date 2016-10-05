@@ -1,0 +1,15 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+  <h1>{{ name }}</h1>
+  <p class="lead">
+    {{ description }}
+  </p>
+  <div>
+<!-- man page content { -->
+
+{{ content|safe }}
+
+<!-- } end of man page content -->
+  </div>
+{% endblock %}

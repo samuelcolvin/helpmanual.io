@@ -1,7 +1,7 @@
+import json
 import re
+from operator import itemgetter
 from pathlib import Path
-
-import yaml
 
 
 class ManMetadata:
@@ -12,8 +12,9 @@ class ManMetadata:
             dir = self.raw_man / 'man{}'.format(i)
             self.process_dir(dir)
             # break
-        with Path('metadata.yml').open('w') as f:
-            yaml.dump(self.data, stream=f, default_flow_style=False)
+        self.data.sort(key=itemgetter('uri'))
+        with Path('metadata.json').open('w') as f:
+            json.dump(self.data, f, indent=2, sort_keys=True)
 
     def process_dir(self, p: Path):
         print('processing {}...'.format(p))
@@ -95,7 +96,7 @@ class ManMetadata:
         data = dict(
             name=name,
             raw_path=str(p.relative_to(self.raw_man)),
-            uri='/man/{}/{}'.format(man_id, name),
+            uri='/man{}/{}'.format(man_id, name),
             description=description,
         )
         if revision_date:

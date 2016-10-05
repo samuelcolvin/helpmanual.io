@@ -1,5 +1,6 @@
-man-primative-html
+man-primitive-html
 .idea
 raw
 env
-metadata.yml
+metadata.json
+site/

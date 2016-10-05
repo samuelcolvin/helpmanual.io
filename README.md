@@ -76,6 +76,4 @@ We might want to persist this data in VCS for performance and for different vers
 
 ## 5. Generate final html pages
 
-This has changed
-
 Create pretty HTML, not saved just sent to server, should include search index and sitemap.xml
