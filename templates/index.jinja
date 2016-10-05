@@ -1,0 +1,14 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+  <p class="lead">
+    {{ description }}
+  </p>
+  <h2>Popular commands</h2>
+  <dl class="row">
+    {% for page in pages %}
+      <dt class="col-sm-2 text-truncate"><a href="{{ page.uri }}">{{ page.name }}</a></dt>
+      <dd class="col-sm-10 text-truncate">{{ page.description }}</dd>
+    {% endfor %}
+  </dl>
+{% endblock %}

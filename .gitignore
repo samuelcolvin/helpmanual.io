@@ -4,3 +4,4 @@ raw
 env
 metadata.json
 site/
+*.swp

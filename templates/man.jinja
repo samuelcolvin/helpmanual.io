@@ -1,15 +1,42 @@
 {% extends 'base.jinja' %}
 
+{% macro detail(name, value) %}
+  {% if value is defined %}
+    <div class="col-sm-6">
+      <div class="terminal-like">
+        <h5>{{ name|safe }}</h5>
+        <div class="value">{{ value }}</div>
+      </div>
+    </div>
+  {% endif %}
+{% endmacro %}
+
 {% block content %}
   <h1>{{ name }}</h1>
   <p class="lead">
     {{ description }}
   </p>
   <div>
-<!-- man page content { -->
-
-{{ content|safe }}
-
-<!-- } end of man page content -->
+    <h2>GNU man page</h2>
+    <div class="row">
+      {{ detail('Man Section', man_section) }}
+      {{ detail('Document Date', doc_date) }}
+      {{ detail('extra &bull; 1 &bull; Revision Date', extra1) }}
+      {{ detail('extra &bull; 2 &bull; Source', extra2) }}
+      {{ detail('extra &bull; 3 &bull; Book', extra3) }}
+    </div>
+    {% if man_comments %}
+      <section id="man-comments" class="terminal-like">
+        <h3>Head comments</h3>
+        <pre class="no-pad">{{ man_comments }}</pre>
+      </section>
+    {% endif %}
+    <section id="man-page" class="terminal-like">
+    <h3>{{ name }} ({{ man_id }})</h3>
+      <!-- man page content { -->
+      {{ content|safe }}
+      <!-- } end of man page content -->
+    </section>
   </div>
+{#  {{ debug() }}#}
 {% endblock %}

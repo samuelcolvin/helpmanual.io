@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="{{ description }}">
+    <meta name="description" content="{{ description|truncate(length=140) }}">
     <meta name="author" content="Samuel Colvin">
     <link rel="icon" href="{{ 'favicon.png'|static }}">
 
@@ -13,25 +13,33 @@
     {# until we compile ourselves #}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.min.css" rel="stylesheet">
 
-    <link href="{{ 'theme.css'|static }}" rel="stylesheet">
+    <link href="{{ 'css/theme.css'|static }}" rel="stylesheet">
   </head>
 
   <body>
     <nav class="navbar navbar-fixed-top navbar-dark bg-inverse">
-      {# TODO search here #}
-      <ul class="nav navbar-nav pull-right">
-        <li class="nav-item">
-          <a class="nav-link" href="#">About</a>
-        </li>
-      </ul>
+      <div class="container">
+        <span class="navbar-brand">{{ title }}</span>
+        {# TODO search here #}
+        <ul class="nav navbar-nav pull-right">
+          <li class="nav-item">
+            <a class="nav-link" href="/">helpmanual.io</a>
+          </li>
+        </ul>
+      </div>
     </nav>
 
-    <div class="container">
-
-      <div>
-        {% block content %}{% endblock %}
-      </div>
-
+    <div class="main container">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">home</a></li>
+        {% for crumb in crumbs %}
+        <li class="breadcrumb-item">
+            <a href="{{ crumb.link or '/' + crumb.name }}">{{ crumb.name }}</a>
+        </li>
+        {% endfor %}
+        <li class="breadcrumb-item active">{{ name or title }}</li>
+      </ol>
+      {% block content %}{% endblock %}
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
