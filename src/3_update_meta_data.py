@@ -33,6 +33,9 @@ class ManMetadata:
             while len(head) < 200:
                 try:
                     line = prev_line + next(f).strip()
+                except UnicodeDecodeError:
+                    print('UnicodeDecodeError for {}'.format(p))
+                    break
                 except StopIteration:
                     break
                 prev_line = ''

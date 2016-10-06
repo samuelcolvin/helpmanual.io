@@ -8,7 +8,7 @@ import man2html
 class Generate:
     def __init__(self):
         self.src_path = Path('./raw/man').resolve()
-        self.dst_path = Path('./man-primative-html')
+        self.dst_path = Path('./man-primitive-html')
         self.dst_path.mkdir(parents=True, exist_ok=True)
         self.dst_path = self.dst_path.resolve()
         self.count = 0
@@ -27,7 +27,7 @@ class Generate:
         print('  {} files generated'.format(self.count - count_b4))
 
     def generate_file(self, p: Path):
-        if p.name in {'dmsetup.8'}:
+        if p.name in {'dmsetup.8', 'latex2man.1', 'groff_hdtbl.7'}:
             print('skipping {}'.format(p.name))
             return
         rel_path = p.relative_to(self.src_path)
@@ -38,7 +38,7 @@ class Generate:
         print(p)
         try:
             html = man2html.man2html_file(p)
-        except man2html.ManpageInvalid as e:
+        except (UnicodeDecodeError, man2html.ManpageInvalid) as e:
             print(e)
             return
         reload(man2html)
