@@ -68,12 +68,13 @@ class GenSite:
                 'name': name,
                 'description': MAN_SECTIONS[man_id],
             })
-        new_path = self.site_dir / 'man.html'
+        new_path = self.site_dir / 'man/index.html'
         ctx = dict(
             title='GNU manual',
             description='GNU man pages in 8 sections',
             pages=pages,
         )
+        new_path.parent.mkdir(parents=True, exist_ok=True)
         new_path.write_text(self.list_template.render(**ctx))
         self.pages.insert(0, '/man')
 
@@ -121,7 +122,7 @@ class GenSite:
                 {'name': 'man{man_id}'.format(**ctx)},
             ]
         )
-        new_path = self.site_dir.joinpath(ctx['uri'].lstrip('/') + '.html')
+        new_path = self.site_dir.joinpath(ctx['uri'].strip('/') + '/index.html')
         new_path.parent.mkdir(parents=True, exist_ok=True)
         new_path.write_text(self.man_template.render(**ctx))
         self.pages.append(escape(ctx['uri']))
@@ -141,7 +142,7 @@ class GenSite:
         new_path = self.site_dir / 'sitemap.xml'
         ctx = dict(
             pages=self.pages,
-            now=datetime.now().isoformat(),
+            now=datetime.now().strftime('%Y-%m-%d'),
         )
         template = self.env.get_template('sitemap.jinja')
         new_path.write_text(template.render(**ctx))

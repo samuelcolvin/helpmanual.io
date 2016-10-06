@@ -10,6 +10,16 @@
 * perhaps other packages managers eg. PHP, CRAN.
 * specific commands git, docker, sublime, atom, aws, dropbox
 
+# TODO
+
+1. improve homepage
+2. add search
+3. tinker with UI
+4. add json ld
+5. add more sources, particularly builtins
+6. links between pages
+7. full build command with vagrant
+
 # Processing pipeline
 
 To generate documents:
