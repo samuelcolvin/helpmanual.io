@@ -13,7 +13,7 @@ MAN_SECTIONS = {
     4: '4 - Special files (usually found in /dev)',
     5: '5 - File formats and conventions eg /etc/passwd',
     6: '6 - Games',
-    7: '7 - Miscellaneous (including macro packages and conventions), e.g. man(7), groff(7)',
+    7: '7 - Miscellaneous (including macro packages and conventions)',
     8: '8 - System administration commands',
 }
 
@@ -113,14 +113,23 @@ class GenSite:
         if '<h2>' in content[:200]:
             content = content[content.index('<h2>'):]
         content = re.sub('(</?)h2>', r'\1h4>', content)
+
+        details = [(label, value) for label, value in [
+            ('Man Section', MAN_SECTIONS[ctx['man_id']]),
+            ('Document Date', ctx.get('doc_date')),
+            ('extra &bull; 1 &bull; Revision Date', ctx.get('extra1')),
+            ('extra &bull; 2 &bull; Source', ctx.get('extra2')),
+            ('extra &bull; 3 &bull; Book', ctx.get('extra3')),
+        ] if value]
+
         ctx.update(
             title='{name} man page'.format(**ctx),
             content=content,
-            man_section=MAN_SECTIONS[ctx['man_id']],
             crumbs=[
                 {'name': 'man'},
                 {'name': 'man{man_id}'.format(**ctx)},
-            ]
+            ],
+            details=details,
         )
         new_path = self.site_dir.joinpath(ctx['uri'].strip('/') + '/index.html')
         new_path.parent.mkdir(parents=True, exist_ok=True)

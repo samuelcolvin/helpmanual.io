@@ -1,16 +1,4 @@
 {% extends 'base.jinja' %}
-
-{% macro detail(name, value) %}
-  {% if value is defined %}
-    <div class="col-sm-6">
-      <div class="terminal-like">
-        <h5>{{ name|safe }}</h5>
-        <div class="value">{{ value }}</div>
-      </div>
-    </div>
-  {% endif %}
-{% endmacro %}
-
 {% block content %}
   <h1>{{ name }}</h1>
   <p class="lead">
@@ -19,11 +7,17 @@
   <div>
     <h2>GNU man page</h2>
     <div class="row">
-      {{ detail('Man Section', man_section) }}
-      {{ detail('Document Date', doc_date) }}
-      {{ detail('extra &bull; 1 &bull; Revision Date', extra1) }}
-      {{ detail('extra &bull; 2 &bull; Source', extra2) }}
-      {{ detail('extra &bull; 3 &bull; Book', extra3) }}
+      {% for label, value in details %}
+        <div class="col-sm-6">
+          <div class="terminal-like detail">
+            <h5>{{ label|safe }}</h5>
+            <div class="value">{{ value }}</div>
+          </div>
+        </div>
+        {% if loop.index is even %}
+          </div><div class="row">
+        {% endif %}
+      {% endfor %}
     </div>
     {% if man_comments %}
       <section id="man-comments" class="terminal-like">

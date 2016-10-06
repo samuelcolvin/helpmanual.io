@@ -20,6 +20,10 @@
 6. links between pages
 7. full build command with vagrant
 
+# To fix
+
+* grep description
+
 # Processing pipeline
 
 To generate documents:

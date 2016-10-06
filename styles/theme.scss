@@ -2,7 +2,7 @@
 
 body {
   font-family: 'Ubuntu', sans-serif;
-  background-color: #fce4ec;
+  background-color: #efefef;
 }
 
 nav {
@@ -35,6 +35,7 @@ $term-text-colour: #dde4e8;
   padding: 20px 20px 20px 50px;
   font-family: 'Ubuntu Mono', monospace;
   line-height: 1em;
+  word-wrap: break-word;
   h3, h4, h5 {
     margin-left: -30px;
     color: #e91e63;
@@ -42,9 +43,6 @@ $term-text-colour: #dde4e8;
   h3, h4 {
     font-size: 1.2rem;
     margin-bottom: 4px;
-  }
-  h5 {
-    font-size: 1.2rem;
   }
   div {
     display: inline;
@@ -55,9 +53,6 @@ $term-text-colour: #dde4e8;
   }
   pre {
     color: #a5aaad;
-  }
-  .value {
-    font-size: 1.2rem;
   }
   table {
     margin: 10px 0;
@@ -70,6 +65,14 @@ $term-text-colour: #dde4e8;
         border: 1px solid $term-text-colour;
       }
     }
+  }
+}
+
+.detail {
+  padding: 15px 20px 15px 40px;
+  h5 {
+    margin-left: -20px;
+    font-size: 1rem;
   }
 }
 
