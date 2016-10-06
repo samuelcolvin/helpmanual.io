@@ -12,12 +12,11 @@
 
 # TODO
 
-* grep, bash description
 * add more sources, particularly builtins and executed functions
 * add search
 * links between pages
 * add json ld
-* find package page came from
+* find package page came from eg. apt package
 * full build command with vagrant
 * use http://www.wordfrequency.info/free.asp for stopwords when generating links.
 

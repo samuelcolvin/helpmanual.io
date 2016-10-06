@@ -1,5 +1,5 @@
 import os
-from importlib import reload
+import subprocess
 from pathlib import Path
 
 import man2html
@@ -23,25 +23,47 @@ class Generate:
         count_b4 = self.count
         for pp in p.iterdir():
             if pp.is_file() and pp.name:
-                self.generate_file(pp)
+                new_path = self.generate_file(pp)
+                if new_path:
+                    print('{} not generated with man2html, trying text'.format(new_path))
+                    self.fallback_generate_file(pp, new_path)
+
         print('  {} files generated'.format(self.count - count_b4))
 
     def generate_file(self, p: Path):
-        if p.name in {'dmsetup.8', 'latex2man.1', 'groff_hdtbl.7'}:
-            print('skipping {}'.format(p.name))
-            return
         rel_path = p.relative_to(self.src_path)
         new_path = self.dst_path / rel_path
         new_path = new_path.with_suffix('{}.html'.format(new_path.suffix))
         if new_path.exists():
             return
-        print(p)
+        if p.name in {'dmsetup.8', 'latex2man.1', 'groff_hdtbl.7', 'groff.7'}:
+            return new_path
+        # print(p)
         try:
             html = man2html.man2html_file(p)
         except (UnicodeDecodeError, man2html.ManpageInvalid) as e:
-            print(e)
-            return
-        reload(man2html)
+            # print(e)
+            return new_path
+        new_path.parent.mkdir(parents=True, exist_ok=True)
+        new_path.write_text(html)
+        self.count += 1
+
+    def fallback_generate_file(self, p: Path, new_path: Path):
+        p = subprocess.Popen(['man', str(p)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             env={'COLUMNS': '10000'}, universal_newlines=True)
+        stdout, stderr = p.communicate(timeout=10)
+        if p.returncode:
+            raise RuntimeError('man failed: return code {}\nstderr:{}'.format(p.returncode, stderr))
+        lines = stdout.split('\n')[1:]
+        html_lines = []
+        for line in lines:
+            if line.startswith(' ' * 10):
+                html_lines.append('<p class="indented">{}</p>'.format(line.strip(' ')))
+            elif line.startswith(' ' * 5):
+                html_lines.append('<p>{}</p>'.format(line.strip(' ')))
+            else:
+                html_lines.append('<h2>{}</h2>'.format(line))
+        html = '\n'.join(html_lines).strip('\n')
         new_path.parent.mkdir(parents=True, exist_ok=True)
         new_path.write_text(html)
         self.count += 1
