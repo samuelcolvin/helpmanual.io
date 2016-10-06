@@ -21,24 +21,26 @@
       <div class="container">
         <span class="navbar-brand">{{ title }}</span>
         {# TODO search here #}
-        <ul class="nav navbar-nav pull-right">
-          <li class="nav-item">
-            <a class="nav-link" href="/">helpmanual.io</a>
-          </li>
-        </ul>
+{#        <ul class="nav navbar-nav pull-right">#}
+{#          <li class="nav-item">#}
+{#            <a class="nav-link" href="/">helpmanual.io</a>#}
+{#          </li>#}
+{#        </ul>#}
       </div>
     </nav>
 
     <div class="main container">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">home</a></li>
-        {% for crumb in crumbs %}
-        <li class="breadcrumb-item">
-            <a href="{{ crumb.link or '/' + crumb.name }}">{{ crumb.name }}</a>
-        </li>
-        {% endfor %}
-        <li class="breadcrumb-item active">{{ name or title }}</li>
-      </ol>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">home</a></li>
+          {% for crumb in crumbs %}
+          <li class="breadcrumb-item">
+              <a href="{{ crumb.link or '/' + crumb.name }}">{{ crumb.name }}</a>
+          </li>
+          {% endfor %}
+          {% if not skip_final_crumb %}
+            <li class="breadcrumb-item active">{{ name or title }}</li>
+          {% endif %}
+        </ol>
       {% block content %}{% endblock %}
     </div>
 

@@ -4,17 +4,18 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, contextfunction, Markup, escape
+from aiohttp_devtools.tools.sass_generator import SassGenerator
+from jinja2 import Environment, FileSystemLoader, Markup
 
 MAN_SECTIONS = {
-    1: '1 - Executable programs or shell commands',
-    2: '2 - System calls (functions provided by the kernel)',
-    3: '3 - Library calls (functions within program libraries)',
-    4: '4 - Special files (usually found in /dev)',
-    5: '5 - File formats and conventions eg /etc/passwd',
-    6: '6 - Games',
-    7: '7 - Miscellaneous (including macro packages and conventions)',
-    8: '8 - System administration commands',
+    1: 'User Commands',
+    2: 'System calls',
+    3: 'Library calls',
+    4: 'Special files',
+    5: 'File formats',
+    6: 'Games',
+    7: 'Miscellaneous',
+    8: 'Admin commands',
 }
 
 
@@ -22,6 +23,11 @@ class GenSite:
     def __init__(self):
         with Path('metadata.json').open() as f:
             data = json.load(f)
+
+        self.site_dir = Path('site')
+        if self.site_dir.exists():
+            shutil.rmtree(str(self.site_dir))
+
         self.env = Environment(
             loader=FileSystemLoader('templates'),
             autoescape=True,
@@ -29,78 +35,35 @@ class GenSite:
             lstrip_blocks=True,
         )
         self.env.filters['static'] = self._static_filter
-        self.env.globals['debug'] = self._debug
 
-        self.man_template = self.env.get_template('man.jinja')
-        self.list_template = self.env.get_template('list.jinja')
         self.primitive_html_root = Path('man-primitive-html').resolve()
-        self.site_dir = Path('site')
         self.pages = []
-        # if self.site_dir.exists():
-        #     shutil.rmtree(str(self.site_dir))
+        self.now = datetime.now().strftime('%Y-%m-%d')
 
         for pdata in data:
             self.generate_page(pdata)
             # if pdata['man_id'] != 1:
             #     break
-        self.generate_man_list()
-        self.generate_man_sub_lists(data)
+
+        self.generate_man_lists(data)
         self.generate_index(data)
-        self.generate_sitemap()
+        self.generate_extra()
+        SassGenerator('styles', 'site/static/css').build()
 
     def _static_filter(self, path):
         return '/static/{}'.format(path.lstrip('/'))
 
-    @contextfunction
-    def _debug(self, ctx):
-        output = '<pre>\n'
-        for k, v in ctx.items():
-            output += '"{}": "{}"\n'.format(k, escape(v))
-        output += '</pre>\n'
-        return Markup(output)
+    def render(self, rel_path: str, template: str, **context):
+        template = self.env.get_template(template)
 
-    def generate_man_list(self):
-        pages = []
-        for man_id in range(1, 9):
-            name = 'man{}'.format(man_id)
-            pages.append({
-                'uri': '/' + name,
-                'name': name,
-                'description': MAN_SECTIONS[man_id],
-            })
-        new_path = self.site_dir / 'man/index.html'
-        ctx = dict(
-            title='GNU manual',
-            description='GNU man pages in 8 sections',
-            pages=pages,
-        )
-        new_path.parent.mkdir(parents=True, exist_ok=True)
-        new_path.write_text(self.list_template.render(**ctx))
-        self.pages.insert(0, '/man')
+        assert rel_path and not rel_path.startswith('/'), repr(rel_path)
+        if rel_path.endswith('/'):
+            rel_path = '{}/index.html'.format(rel_path.rstrip('/'))
+        path = self.site_dir / rel_path
 
-    def generate_man_sub_lists(self, data):
-        pages = []
-        man_id = 1
-        for pdata in data:
-            if pdata['man_id'] != man_id:
-                self._generate_a_man_sub_list(man_id, pages)
-                man_id = pdata['man_id']
-                pages = []
-            pages.append(pdata)
-        self._generate_a_man_sub_list(man_id, pages)
-
-    def _generate_a_man_sub_list(self, man_id, pages):
-        name = 'man{}'.format(man_id)
-        new_path = self.site_dir / '{}/index.html'.format(name)
-        ctx = dict(
-            title=name,
-            description=MAN_SECTIONS[man_id],
-            crumbs=[{'name': 'man'}],
-            pages=pages,
-        )
-        new_path.parent.mkdir(parents=True, exist_ok=True)
-        new_path.write_text(self.list_template.render(**ctx))
-        self.pages.insert(0, '/' + name)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(template.render(**context))
+        self.pages.insert(0, '/' + rel_path)
 
     def generate_page(self, ctx):
         html_path = self.primitive_html_root.joinpath(ctx['raw_path'] + '.html')
@@ -115,7 +78,7 @@ class GenSite:
         content = re.sub('(</?)h2>', r'\1h4>', content)
 
         details = [(label, value) for label, value in [
-            ('Man Section', MAN_SECTIONS[ctx['man_id']]),
+            ('Man Section', Markup('{} &bull; {}'.format(ctx['man_id'], MAN_SECTIONS[ctx['man_id']]))),
             ('Document Date', ctx.get('doc_date')),
             ('extra &bull; 1 &bull; Revision Date', ctx.get('extra1')),
             ('extra &bull; 2 &bull; Source', ctx.get('extra2')),
@@ -126,35 +89,58 @@ class GenSite:
             title='{name} man page'.format(**ctx),
             content=content,
             crumbs=[
-                {'name': 'man'},
                 {'name': 'man{man_id}'.format(**ctx)},
             ],
             details=details,
         )
-        new_path = self.site_dir.joinpath(ctx['uri'].strip('/') + '/index.html')
-        new_path.parent.mkdir(parents=True, exist_ok=True)
-        new_path.write_text(self.man_template.render(**ctx))
-        self.pages.append(escape(ctx['uri']))
+        self.render(ctx['uri'].strip('/') + '/', 'man.jinja', **ctx)
+
+    def generate_man_lists(self, data):
+        pages = []
+        man_id = 1
+        data_iter = iter(data)
+        while True:
+            pdata = next(data_iter, None)
+            if pdata is None or pdata['man_id'] != man_id:
+                self.render(
+                    'man{}/'.format(man_id),
+                    'list.jinja',
+                    title='man{}'.format(man_id),
+                    description='{} - {}'.format(man_id, MAN_SECTIONS[man_id]),
+                    pages=pages,
+                )
+                if pdata is None:
+                    break
+                else:
+                    man_id = pdata['man_id']
+                    pages = []
+            pages.append(pdata)
 
     def generate_index(self, data):
-        new_path = self.site_dir / 'index.html'
-        ctx = dict(
+        self.render(
+            'index.html',
+            'index.jinja',
             title='helpmanual.io',
             description='man pages and help text for unix commands',
-            pages=data[:200],  # TODO better way of list pages here
+            skip_final_crumb=True,
+            sections=[
+                dict(
+                    title='GNU manual pages',
+                    description='GNU man pages in 8 sections',
+                    links=[{
+                        'uri': 'man{}'.format(man_id),
+                        'name': 'man{}'.format(man_id),
+                        'description': MAN_SECTIONS[man_id],
+                    } for man_id in range(1, 9)],
+                )
+            ]
         )
-        template = self.env.get_template('index.jinja')
-        new_path.write_text(template.render(**ctx))
-        self.pages.insert(0, '/')
 
-    def generate_sitemap(self):
-        new_path = self.site_dir / 'sitemap.xml'
-        ctx = dict(
-            pages=self.pages,
-            now=datetime.now().strftime('%Y-%m-%d'),
-        )
-        template = self.env.get_template('sitemap.jinja')
-        new_path.write_text(template.render(**ctx))
+    def generate_extra(self):
+        self.render('sitemap.xml', 'sitemap.xml.jinja', pages=self.pages, now=self.now)
+        self.render('robots.txt', 'robots.txt.jinja')
+        self.render('humans.txt', 'humans.txt.jinja', now=self.now)
+        self.render('404.html', 'stub.jinja', title='404', description='Page not found.', skip_final_crumb=True)
 
 
 if __name__ == '__main__':

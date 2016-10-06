@@ -4,11 +4,28 @@
   <p class="lead">
     {{ description }}
   </p>
-  <h2>Popular commands</h2>
-  <dl class="row">
-    {% for page in pages %}
-      <dt class="col-sm-2 text-truncate"><a href="{{ page.uri }}">{{ page.name }}</a></dt>
-      <dd class="col-sm-10 text-truncate">{{ page.description }}</dd>
+
+  <div class="row">
+    {% for section in sections %}
+      <div class="col-md-6">
+        <div class="card white">
+          <div class="card-block">
+            <h3 class="card-title">{{ section.title }}</h3>
+            <p class="card-text">{{ section.description }}</p>
+          </div>
+  {#        <a href="#" class="btn btn-primary">Go somewhere</a>#}
+          <ul class="list-group list-group-flush">
+            {% for link in section.links %}
+              <li class="list-group-item">
+                <a href="{{ link.uri }}">{{ link.name }}</a> &bull; {{ link.description }}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% if loop.index is even %}
+        </div><div class="row">
+      {% endif %}
     {% endfor %}
-  </dl>
+  </div>
 {% endblock %}

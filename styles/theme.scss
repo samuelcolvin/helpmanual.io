@@ -1,16 +1,65 @@
 @import 'https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700|Ubuntu:400,500';
 
+// teal
+$colour-grid-1: (
+  "base":       #009688,
+  "lighten-5":  #e0f2f1,
+  "lighten-4":  #b2dfdb,
+  "lighten-3":  #80cbc4,
+  "lighten-2":  #4db6ac,
+  "lighten-1":  #26a69a,
+  "darken-1":   #00897b,
+  "darken-2":   #00796b,
+  "darken-3":   #00695c,
+  "darken-4":   #004d40,
+  "accent-1":    #a7ffeb,
+  "accent-2":    #64ffda,
+  "accent-3":    #1de9b6,
+  "accent-4":    #00bfa5
+);
+
+// light blue
+$colour-grid-2: (
+  "base":       #03a9f4,
+  "lighten-5":  #e1f5fe,
+  "lighten-4":  #b3e5fc,
+  "lighten-3":  #81d4fa,
+  "lighten-2":  #4fc3f7,
+  "lighten-1":  #29b6f6,
+  "darken-1":   #039be5,
+  "darken-2":   #0288d1,
+  "darken-3":   #0277bd,
+  "darken-4":   #01579b,
+  "accent-1":    #80d8ff,
+  "accent-2":    #40c4ff,
+  "accent-3":    #00b0ff,
+  "accent-4":    #0091ea
+);
+
+$term-text-colour: #dde4e8;
+
 body {
   font-family: 'Ubuntu', sans-serif;
-  background-color: #efefef;
+  background-color: map-get($colour-grid-1, "lighten-5");
+  //background-color: #efefef;
+  color: map-get($colour-grid-1, "darken-3");
 }
 
 nav {
   &.bg-inverse {
     color: #f3f7f9;
-    background-color: #c2185b;
+    background-color: map-get($colour-grid-1, "darken-1");
   }
 }
+
+h1 {
+  font-size: 1.8rem;
+}
+
+h2 {
+  font-size: 1.6rem;
+}
+
 
 .main.container {
   padding-top: 70px;
@@ -18,14 +67,15 @@ nav {
 }
 
 .breadcrumb {
-  background-color: #f8bbd0;
+  background-color: map-get($colour-grid-1, "lighten-4");
+  a {
+    color: map-get($colour-grid-1, "darken-3");
+  }
 }
 
 dt a {
   font-weight: normal;
 }
-
-$term-text-colour: #dde4e8;
 
 .terminal-like {
   margin-bottom: 20px;
@@ -38,7 +88,7 @@ $term-text-colour: #dde4e8;
   word-wrap: break-word;
   h3, h4, h5 {
     margin-left: -30px;
-    color: #e91e63;
+    color: map-get($colour-grid-1, "lighten-3");
   }
   h3, h4 {
     font-size: 1.2rem;
@@ -62,7 +112,7 @@ $term-text-colour: #dde4e8;
     }
     &.border {
       th, td {
-        border: 1px solid $term-text-colour;
+        border: 1px solid map-get($colour-grid-1, "lighten-2");
       }
     }
   }
@@ -78,4 +128,8 @@ $term-text-colour: #dde4e8;
 
 .no-pad {
   margin: 0 !important;
+}
+
+.white {
+  background-color: white;
 }

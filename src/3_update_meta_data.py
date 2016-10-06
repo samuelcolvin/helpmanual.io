@@ -27,8 +27,7 @@ class ManMetadata:
         description = revision_date = None
         extra1 = extra2 = extra3 = None
         head, man_comments = [], []
-        in_description = False
-        # print(p)
+        in_description, reached_name = False, False
         with p.open() as f:
             prev_line = ''
             while len(head) < 200:
@@ -51,8 +50,9 @@ class ManMetadata:
                     continue
 
                 line = re.sub('^\\\& ', '', line)
-
-                if line.startswith('.TH'):
+                if re.search('^\.s[sh] ', line, flags=re.I):
+                    reached_name = True
+                elif line.startswith('.TH'):
                     th_line = line[4:].strip()
                     th_items = [v.strip('"') for v in re.findall('(".*?"|\w+)(?: |$)', th_line)]
                     if len(th_items) > 2:
@@ -67,17 +67,32 @@ class ManMetadata:
                     revision_date = line[4:]
                     revision_date = re.sub(r'\$Mdocdate:(.*)\$', r'\1', revision_date).strip(' ')
 
-                if in_description:
-                    if line.startswith('.'):
-                        in_description = False
-                    else:
-                        description += line
-                elif description is None and not line.startswith('.'):
-                    description = line
-                    in_description = True
-                elif description is None and line.startswith('.Nd'):
-                    description = line[4:]
+                if reached_name:
+                    if in_description:
+                        if line.startswith('.Nm'):
+                            description += line[4:]
+                        elif line.startswith('.Nd'):
+                            description += ' - ' + line[4:]
+                        elif line.startswith('.'):
+                            in_description = False
+                        else:
+                            description += line
+                    elif description:
+                        pass
+                    elif not line.startswith('.'):
+                        description = line
+                        in_description = True
+                    elif line.startswith('.Nm'):
+                        description = line[4:]
+                        in_description = True
+                    elif line.startswith('.Nd'):
+                        description = line[4:]
+                        in_description = True
                 head.append(line)
+
+        if description is None and man_id == 3:
+            # some man3 pages really don't have descriptions, eg. pcredemo
+            description = name
 
         if description is None:
             if next((l for l in head if l.startswith('.so ')), None):
@@ -85,13 +100,14 @@ class ManMetadata:
             if len(head) < 2:
                 return
             raise RuntimeError('no description for {}\n"{}"'.format(p, '\n'.join(head)))
+
         description = description.strip(' ')
         description = re.sub(r'\\s[\-0-9]+', '', description)
         description = description.replace('\\-', '-')
-        if description.lower().startswith(name + ' '):
-            description = description[len(name) + 1:]
-        elif ' - ' in description[:30]:
-            description = description[description.index(' - ') + 3:]
+        # if description.lower().startswith(name + ' '):
+        #     description = description[len(name) + 1:]
+        # elif ' - ' in description[:30]:
+        #     description = description[description.index(' - ') + 3:]
         description = description.strip(' -,')
 
         man_comments = (
