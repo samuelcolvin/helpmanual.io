@@ -12,7 +12,7 @@
 
 # TODO
 
-* add more sources, particularly builtins and executed functions
+* add executed functions
 * add search
 * links between pages
 * add json ld

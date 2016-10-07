@@ -51,8 +51,9 @@ class GenSite:
 
         for data in builtin_data:
             self.generate_builtin_page(data)
+        self.generate_builtin_list(builtin_data)
 
-        self.generate_index(man_data)
+        self.generate_index(man_data, builtin_data)
         self.generate_extra()
         SassGenerator('styles', 'site/static/css').build()
 
@@ -141,7 +142,16 @@ class GenSite:
         )
         self.render(ctx['uri'].strip('/') + '/', 'builtin.jinja', **ctx)
 
-    def generate_index(self, data):
+    def generate_builtin_list(self, data):
+        self.render(
+            'builtin/',
+            'list.jinja',
+            title='Bash Builtins',
+            description='Builtin bash methods',
+            pages=data,
+        )
+
+    def generate_index(self, man_data, builtin_data):
         self.render(
             'index.html',
             'index.jinja',
@@ -157,7 +167,13 @@ class GenSite:
                         'name': 'man{}'.format(man_id),
                         'description': MAN_SECTIONS[man_id],
                     } for man_id in range(1, 9)],
-                )
+                ),
+                dict(
+                    title='Bash Builtins',
+                    description='Builtin bash methods',
+                    links=[b for b in builtin_data[:9] if len(b['name']) > 1],
+                    more='/builtin',
+                ),
             ]
         )
 

@@ -14,6 +14,7 @@ class ExtractBuiltins:
         text = m.groups()[0]
         m = re.search('\n(\s{7}: \[arguments\].*)', text, flags=re.S)
         text = m.groups()[0]
+        # Path('bash-builtins.txt').write_text(text)
         regex = re.compile('^\s{7,8}((\S+).*?)(?=^\s{7,8}\S)', re.M | re.S)
         current = ''
         self.metadata = []
@@ -53,10 +54,13 @@ class ExtractBuiltins:
                 short_description = first_line[:s_end]
                 if not full:
                     short_description += '...'
+            prefix = '<p>'
             if line.startswith(' ' * 20):
-                description.append('<p class="indented">{}</p>'.format(line.strip(' ')))
-            else:
-                description.append('<p>{}</p>'.format(line.strip(' ')))
+                prefix = '<p class="indented">'
+            line = re.sub('^(\S{,20})(\s{2,})', r'<b>\g<1></b>\2', line.strip(' '))
+            line = re.sub('^(\S{,20})$', r'<b>\g<1></b>', line)
+            line = re.sub(' {2,}', lambda m: '&nbsp;' * len(m.group()), line)
+            description.append('{}{}</p>'.format(prefix, line))
         html = """\
 <h2>NAME</h2>
 {name} - {short_description}

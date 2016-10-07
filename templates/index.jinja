@@ -11,13 +11,17 @@
         <div class="card white">
           <div class="card-block">
             <h3 class="card-title">{{ section.title }}</h3>
-            <p class="card-text">{{ section.description }}</p>
+            <p class="card-text">
+              {{ section.description }}
+              {% if section.more %}
+                <a href="{{ section.more }}">more&hellip;</a>
+              {% endif %}
+            </p>
           </div>
-  {#        <a href="#" class="btn btn-primary">Go somewhere</a>#}
           <ul class="list-group list-group-flush">
             {% for link in section.links %}
               <li class="list-group-item">
-                <a href="{{ link.uri }}">{{ link.name }}</a> &bull; {{ link.description }}
+                <a href="{{ link.uri }}">{{ link.name }}</a> &bull; {{ link.description|truncate(50) }}
               </li>
             {% endfor %}
           </ul>
