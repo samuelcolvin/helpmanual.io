@@ -10,6 +10,31 @@
 * perhaps other packages managers eg. PHP, CRAN.
 * specific commands git, docker, sublime, atom, aws, dropbox
 
+## sources
+
+* pypi
+* npm
+* gem
+* composer/packager
+* cran
+* cargo
+* julia pkg
+
+## custom commands
+
+* git
+* docker
+* sublime
+* atom / apm
+* aws-cli
+* hg
+* svn
+* google-chrome
+* chromium-browser
+* nginx
+* apache
+* ha-proxy
+
 # TODO
 
 * add executed functions
