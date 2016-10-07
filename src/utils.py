@@ -5,7 +5,7 @@ from pathlib import Path
 def man_to_txt(p: Path):
     p = subprocess.Popen(['man', str(p)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          env={'COLUMNS': '10000'}, universal_newlines=True)
-    stdout, stderr = p.communicate(timeout=10)
+    stdout, stderr = p.communicate(timeout=2)
     if p.returncode:
         raise RuntimeError('man failed: return code {}\nstderr:{}'.format(p.returncode, stderr))
     return stdout

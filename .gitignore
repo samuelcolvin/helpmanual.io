@@ -6,3 +6,5 @@ env
 site/
 *.swp
 *.py[cod]
+data
+exec_data.json

@@ -2,7 +2,7 @@ import json
 import re
 from pathlib import Path
 
-from utils import man_to_txt, txt_to_html
+from utils import man_to_txt
 
 
 class ExtractBuiltins:
