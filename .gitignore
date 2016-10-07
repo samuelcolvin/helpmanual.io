@@ -1,7 +1,8 @@
-man-primitive-html
+html_raw
 .idea
 raw
 env
-metadata.json
+*metadata.json
 site/
 *.swp
+*.py[cod]

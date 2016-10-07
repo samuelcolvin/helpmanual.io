@@ -21,8 +21,6 @@ MAN_SECTIONS = {
 
 class GenSite:
     def __init__(self):
-        with Path('metadata.json').open() as f:
-            data = json.load(f)
 
         self.site_dir = Path('site')
         if self.site_dir.exists():
@@ -36,17 +34,25 @@ class GenSite:
         )
         self.env.filters['static'] = self._static_filter
 
-        self.primitive_html_root = Path('man-primitive-html').resolve()
+        self.html_root = Path('html_raw').resolve()
         self.pages = []
         self.now = datetime.now().strftime('%Y-%m-%d')
 
-        for pdata in data:
-            self.generate_page(pdata)
-            # if pdata['man_id'] != 1:
-            #     break
+        with Path('man_metadata.json').open() as f:
+            man_data = json.load(f)
 
-        self.generate_man_lists(data)
-        self.generate_index(data)
+        for data in man_data:
+            self.generate_man_page(data)
+
+        self.generate_man_lists(man_data)
+
+        with Path('builtin_metadata.json').open() as f:
+            builtin_data = json.load(f)
+
+        for data in builtin_data:
+            self.generate_builtin_page(data)
+
+        self.generate_index(man_data)
         self.generate_extra()
         SassGenerator('styles', 'site/static/css').build()
 
@@ -65,8 +71,8 @@ class GenSite:
         path.write_text(template.render(**context))
         self.pages.insert(0, '/' + rel_path)
 
-    def generate_page(self, ctx):
-        html_path = self.primitive_html_root.joinpath(ctx['raw_path'] + '.html')
+    def generate_man_page(self, ctx):
+        html_path = self.html_root / 'man' / '{raw_path}.html'.format(**ctx)
         try:
             html_path = html_path.resolve()
         except FileNotFoundError:
@@ -80,7 +86,7 @@ class GenSite:
         details = [(label, value) for label, value in [
             ('Man Section', Markup('{} &bull; {}'.format(ctx['man_id'], MAN_SECTIONS[ctx['man_id']]))),
             ('Document Date', ctx.get('doc_date')),
-            ('extra &bull; 1 &bull; Revision Date', ctx.get('extra1')),
+            ('extra &bull; 1 &bull; Version', ctx.get('extra1')),
             ('extra &bull; 2 &bull; Source', ctx.get('extra2')),
             ('extra &bull; 3 &bull; Book', ctx.get('extra3')),
         ] if value]
@@ -115,6 +121,25 @@ class GenSite:
                     man_id = pdata['man_id']
                     pages = []
             pages.append(pdata)
+
+    def generate_builtin_page(self, ctx):
+        html_path = self.html_root / ctx['raw_path']
+        try:
+            html_path = html_path.resolve()
+        except FileNotFoundError:
+            print('{} does not exist'.format(html_path))
+            return
+        content = html_path.read_text()
+        content = re.sub('(</?)h2>', r'\1h4>', content)
+
+        ctx.update(
+            title='{name} man page'.format(**ctx),
+            content=content,
+            crumbs=[
+                {'name': 'builtins'},
+            ],
+        )
+        self.render(ctx['uri'].strip('/') + '/', 'builtin.jinja', **ctx)
 
     def generate_index(self, data):
         self.render(

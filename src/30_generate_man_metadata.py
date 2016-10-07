@@ -13,7 +13,7 @@ class ManMetadata:
             self.process_dir(dir, man_id)
             # break
         self.data.sort(key=itemgetter('uri'))
-        with Path('metadata.json').open('w') as f:
+        with Path('man_metadata.json').open('w') as f:
             json.dump(self.data, f, indent=2, sort_keys=True)
 
     def process_dir(self, p: Path, man_id: int):
@@ -121,7 +121,7 @@ class ManMetadata:
             .strip('\n"')
         )
         if len(man_comments) > 400:
-            man_comments = man_comments[:399] + '…'
+            man_comments = man_comments[:397] + '...'
 
         if '\n' not in man_comments:
             man_comments = man_comments.strip(' ')

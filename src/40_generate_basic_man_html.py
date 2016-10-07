@@ -1,14 +1,14 @@
 import os
-import subprocess
 from pathlib import Path
 
 import man2html
+from utils import man_to_txt, txt_to_html
 
 
 class Generate:
     def __init__(self):
-        self.src_path = Path('./raw/man').resolve()
-        self.dst_path = Path('./man-primitive-html')
+        self.src_path = Path('raw/man').resolve()
+        self.dst_path = Path('html_raw/man')
         self.dst_path.mkdir(parents=True, exist_ok=True)
         self.dst_path = self.dst_path.resolve()
         self.count = 0
@@ -49,21 +49,8 @@ class Generate:
         self.count += 1
 
     def fallback_generate_file(self, p: Path, new_path: Path):
-        p = subprocess.Popen(['man', str(p)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             env={'COLUMNS': '10000'}, universal_newlines=True)
-        stdout, stderr = p.communicate(timeout=10)
-        if p.returncode:
-            raise RuntimeError('man failed: return code {}\nstderr:{}'.format(p.returncode, stderr))
-        lines = stdout.split('\n')[1:]
-        html_lines = []
-        for line in lines:
-            if line.startswith(' ' * 10):
-                html_lines.append('<p class="indented">{}</p>'.format(line.strip(' ')))
-            elif line.startswith(' ' * 5):
-                html_lines.append('<p>{}</p>'.format(line.strip(' ')))
-            else:
-                html_lines.append('<h2>{}</h2>'.format(line))
-        html = '\n'.join(html_lines).strip('\n')
+        text = man_to_txt(p)
+        html = txt_to_html(text)
         new_path.parent.mkdir(parents=True, exist_ok=True)
         new_path.write_text(html)
         self.count += 1
