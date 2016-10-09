@@ -24,3 +24,22 @@ def txt_to_html(man_txt: str):
         else:
             html_lines.append('<h2>{}</h2>'.format(line))
     return '\n'.join(html_lines).strip('\n')
+
+
+def generate_description(first_line):
+    first_line = first_line.strip(' ')
+    full = True
+    try:
+        s_end = first_line.index('.')
+        assert s_end > 20
+    except (ValueError, AssertionError):
+        s_end = len(first_line)
+    if s_end > 140:
+        full = False
+        s_end = 137
+        while first_line[s_end] != ' ':
+            s_end -= 1
+    description = first_line[:s_end]
+    if not full:
+        description += '...'
+    return description

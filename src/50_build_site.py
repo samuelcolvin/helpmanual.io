@@ -7,6 +7,8 @@ from pathlib import Path
 from aiohttp_devtools.tools.sass_generator import SassGenerator
 from jinja2 import Environment, FileSystemLoader, Markup
 
+from utils import generate_description
+
 MAN_SECTIONS = {
     1: 'User Commands',
     2: 'System calls',
@@ -41,10 +43,21 @@ class GenSite:
         with Path('man_metadata.json').open() as f:
             man_data = json.load(f)
 
-        for data in man_data:
-            self.generate_man_page(data)
+        man_uris = {d['name']: d['uri'] for d in man_data}
 
+        with Path('exec_data.json').open() as f:
+            exec_data = json.load(f)
+
+        exec_names = {d['name'] for d in exec_data}
+
+        for data in man_data:
+            self.generate_man_page(data, exec_names)
         self.generate_man_lists(man_data)
+
+        for data in exec_data.values():
+            if data is not None:
+                self.generate_exec_page(data, man_uris)
+        self.generate_exec_list(exec_data)
 
         with Path('builtin_metadata.json').open() as f:
             builtin_data = json.load(f)
@@ -72,7 +85,7 @@ class GenSite:
         path.write_text(template.render(**context))
         self.pages.insert(0, '/' + rel_path)
 
-    def generate_man_page(self, ctx):
+    def generate_man_page(self, ctx, exec_names):
         html_path = self.html_root / 'man' / '{raw_path}.html'.format(**ctx)
         try:
             html_path = html_path.resolve()
@@ -99,8 +112,9 @@ class GenSite:
                 {'name': 'man{man_id}'.format(**ctx)},
             ],
             details=details,
+            exec_varient=ctx['name'] in exec_names,
         )
-        self.render(ctx['uri'].strip('/') + '/', 'man.jinja', **ctx)
+        self.render(ctx['uri'], 'man.jinja', **ctx)
 
     def generate_man_lists(self, data):
         pages = []
@@ -151,7 +165,28 @@ class GenSite:
             pages=data,
         )
 
-    def generate_index(self, man_data, builtin_data):
+    def generate_exec_page(self, ctx, man_uris):
+        descr = ctx['help_msg'].strip('\n').split('\n')[0]
+        ctx.update(
+            title='{name} help page'.format(**ctx),
+            description=generate_description(descr),
+            crumbs=[
+                {'name': 'help'},
+            ],
+            man_variant_uri=man_uris.get(ctx['name'], None),
+        )
+        self.render('help/{name}/'.format(**ctx), 'exec.jinja', **ctx)
+
+    def generate_exec_list(self, data):
+        self.render(
+            'help/',
+            'list.jinja',
+            title='Help Output',
+            description='Output of help commands',
+            pages=data,
+        )
+
+    def generate_index(self, man_data, builtin_data, exec_data):
         self.render(
             'index.html',
             'index.jinja',
@@ -173,6 +208,12 @@ class GenSite:
                     description='Builtin bash methods',
                     links=[b for b in builtin_data[:9] if len(b['name']) > 1],
                     more='/builtin',
+                ),
+                dict(
+                    title='Help Output',
+                    description='Output of help commands',
+                    links=[b for b in exec_data[:9] if len(b['name']) > 1],
+                    more='/help',
                 ),
             ]
         )

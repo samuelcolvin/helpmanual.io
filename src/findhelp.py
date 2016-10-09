@@ -16,7 +16,7 @@ def process_cmd(command):
         return None
     v_arg, v_msg, v_returncode = try_args(command, '--version', '-version', 'version', '-v', allow_short=True)
     return dict(
-        command=command,
+        name=command,
         help_arg=help_arg,
         help_msg=help_msg,
         help_returncode=help_returncode,

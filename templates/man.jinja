@@ -2,10 +2,21 @@
 
 {% block content %}
   <h1>{{ name }}</h1>
-  <p class="lead">
-    {{ description }}
-  </p>
+  <ul class="nav nav-pills">
+    <li class="nav-item">
+      <a class="nav-link active" href="">Man Page</a>
+    </li>
+    {% if exec_varient %}
+      <li class="nav-item">
+        <a class="nav-link" href="/help/{{ name }}/">Help Output</a>
+      </li>
+    {% endif %}
+  </ul>
+
   <div>
+    <p class="lead">
+      {{ description }}
+    </p>
     <h2>GNU man page</h2>
     <div class="row">
       {% for label, value in details %}
@@ -20,6 +31,7 @@
         {% endif %}
       {% endfor %}
     </div>
+
     {% if man_comments %}
       <section id="man-comments" class="terminal-like">
         <h3>Head comments</h3>

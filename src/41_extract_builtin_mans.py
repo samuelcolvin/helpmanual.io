@@ -2,7 +2,7 @@ import json
 import re
 from pathlib import Path
 
-from utils import man_to_txt
+from utils import man_to_txt, generate_description
 
 
 class ExtractBuiltins:
@@ -40,20 +40,7 @@ class ExtractBuiltins:
                 synopsis.append('<p>{}</p>'.format(line))
                 continue
             if not short_description:
-                first_line = line.strip(' ')
-                full = True
-                try:
-                    s_end = first_line.index('.')
-                except ValueError:
-                    s_end = len(first_line)
-                if s_end > 140:
-                    full = False
-                    s_end = 137
-                    while first_line[s_end] != ' ':
-                        s_end -= 1
-                short_description = first_line[:s_end]
-                if not full:
-                    short_description += '...'
+                short_description = generate_description(line)
             prefix = '<p>'
             if line.startswith(' ' * 20):
                 prefix = '<p class="indented">'
