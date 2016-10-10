@@ -25,11 +25,13 @@
       sometimes it gets lucky, <b>sometimes it doesn't</b>.
     </p>
 
+    {% if version_msg %}
     <section id="man-comments" class="terminal-like">
       <h3>{{ name }} {{ version_arg }} (return code: {{ version_returncode }})</h3>
 
       <div class="white-space">{{ version_msg }}</div>
     </section>
+    {% endif %}
     <section id="man-page" class="terminal-like">
       <h3>{{ name }} {{ help_arg }} (return code: {{ help_returncode }})</h3>
 

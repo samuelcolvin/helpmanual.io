@@ -218,7 +218,7 @@ class GenSite:
             'help/',
             'list.jinja',
             title='Help Output',
-            description='Output of "--help" and "--version" commands (or equivalent)',
+            description='Output of help commands',
             pages=self._sort_help(data),
         )
 
