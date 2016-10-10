@@ -7,14 +7,18 @@ from itertools import chain
 from pathlib import Path
 from subprocess import TimeoutExpired, PIPE, Popen
 
+import chardet
+
 STOP_WORDS = 'unknown', 'doctype'
 
 
 def process_cmd(command):
     help_arg, help_msg, help_returncode = try_args(command, '--help', 'help', '-help', '-h')
     if not help_msg:
+        print('no help message found')
         return None
     v_arg, v_msg, v_returncode = try_args(command, '--version', '-version', 'version', '-v', allow_short=True)
+    print('help and version messages found')
     return dict(
         name=command,
         help_arg=help_arg,
@@ -56,6 +60,16 @@ def try_args(command, *args, allow_short=False):
     return arg, msg, returncode
 
 
+def decode(s, encoding='utf8', retry=0):
+    try:
+        return s.decode(encoding)
+    except UnicodeDecodeError:
+        alt_encoding = chardet.detect(s)['encoding']
+        if retry < 3 and alt_encoding:
+            return decode(s, alt_encoding, retry + 1)
+        return None
+
+
 def run(cmd, arg):
     try:
         proc = Popen(
@@ -64,7 +78,6 @@ def run(cmd, arg):
             stderr=PIPE,
             executable='/bin/bash',
             shell=True,
-            universal_newlines=True,
             env=dict(os.environ, DISPLAY=''),
         )
     except OSError:
@@ -83,7 +96,10 @@ def run(cmd, arg):
     except TimeoutExpired:
         return
     signal.alarm(0)
-    return stdout or stderr, proc.returncode
+    out = decode(stdout or stderr)
+    if out is None:
+        return
+    return out, proc.returncode
 
 
 if __name__ == '__main__':

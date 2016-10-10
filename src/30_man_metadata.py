@@ -13,7 +13,7 @@ class ManMetadata:
             self.process_dir(dir, man_id)
             # break
         self.data.sort(key=itemgetter('uri'))
-        with Path('man_metadata.json').open('w') as f:
+        with Path('data/man_metadata.json').open('w') as f:
             json.dump(self.data, f, indent=2, sort_keys=True)
 
     def process_dir(self, p: Path, man_id: int):

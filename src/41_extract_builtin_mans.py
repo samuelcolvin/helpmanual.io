@@ -25,7 +25,7 @@ class ExtractBuiltins:
                 continue
             self.save(item_name, current)
             current = ''
-        with Path('builtin_metadata.json').open('w') as f:
+        with Path('data/builtin_metadata.json').open('w') as f:
             json.dump(self.metadata, f, indent=2, sort_keys=True)
 
     def save(self, name, content):

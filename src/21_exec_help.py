@@ -1,3 +1,9 @@
+"""
+Get "--help" and "--version" (or equivalent) info from all commands.
+
+**BIG FAT WARNING**: this can fuck things up, both filesystem and kill the x session.
+Run with caution.
+"""
 import json
 import queue
 import shutil
@@ -5,7 +11,10 @@ import threading
 from pathlib import Path
 from subprocess import run, PIPE
 
-THEADS = 4
+import click
+
+THREADS = 7
+MAX_COMMANDS = None
 
 THIS_DIR = Path(__file__).parent.resolve()
 
@@ -17,13 +26,14 @@ class ExecHelp:
         for arg in ['builtin', 'keyword']:
             v = self.run_bash('compgen -A ' + arg)
             self.commands -= {c for c in v.split('\n') if c}
-        self.commands = sorted(self.commands)
         print('found {} commands'.format(len(self.commands)))
-        self.path = Path('exec_data.json')
+        self.data_path = Path('data/exec_data.json')
         self.data = {}
-        if self.path.exists():
-            with self.path.open() as f:
+        if self.data_path.exists():
+            with self.data_path.open() as f:
                 self.data = json.load(f)
+        self.commands = sorted({c for c in self.commands if c not in self.data})
+        print('found {} commands left to run'.format(len(self.commands)))
         self.proc = None
         self.queue = None
         self.new_cmds = []
@@ -41,7 +51,7 @@ class ExecHelp:
             print('generated info for {} commands'.format(len(self.new_cmds)))
 
     def write(self):
-        with self.path.open('w') as f:
+        with self.data_path.open('w') as f:
             json.dump(self.data, f, sort_keys=True, indent=2)
 
     def worker(self):
@@ -49,45 +59,47 @@ class ExecHelp:
             command = self.queue.get()
             if command is None:
                 break
-            self.process_cmd(command)
-            self.new_cmds.append(command)
-            if len(self.new_cmds) % 5 == 0:
-                self.write()
-            self.queue.task_done()
+            try:
+                self.process_cmd(command)
+                self.new_cmds.append(command)
+                if len(self.new_cmds) % 5 == 0:
+                    self.write()
+            finally:
+                self.queue.task_done()
 
     def go(self):
         sandpit = Path('/tmp/sandpit')
         if sandpit.exists():
             shutil.rmtree(str(sandpit))
 
-        self.queue = queue.Queue()
+        self.queue = queue.Queue(maxsize=50)
         threads = []
-        for i in range(THEADS):
+        for i in range(THREADS):
             t = threading.Thread(target=self.worker)
             t.start()
             threads.append(t)
 
-        for command in self.commands:
-            if command in self.data:
-                continue
-            self.queue.put(command)
-            self.started += 1
-            if self.started > 1000:
-                break
+        with click.progressbar(self.commands) as bar_commands:
+            for command in bar_commands:
+                self.queue.put(command)
+                self.started += 1
+                if MAX_COMMANDS and self.started > MAX_COMMANDS:
+                    break
 
         self.queue.join()
 
-        for i in range(THEADS):
+        for i in range(THREADS):
             self.queue.put(None)
+
         for t in threads:
             t.join()
 
     def process_cmd(self, command):
-        print(command)
         outpath = self.json_dir / '{}.json'.format(command)
-        run(['xterm', '-e', '{} {} {}'.format(self.executor, command, outpath)], check=True)
+        cmd = '{} {} {}'.format(self.executor, command, outpath)
+        run(['xterm', '-e', cmd], check=True)
         if not outpath.exists():
-            raise RuntimeError('"{}" does not exist'.format(outpath))
+            raise RuntimeError('"{}" does not exist, command: "{}"'.format(outpath, cmd))
         with outpath.open() as f:
             data = json.load(f)
         self.data[command] = data

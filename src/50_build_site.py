@@ -40,12 +40,12 @@ class GenSite:
         self.pages = []
         self.now = datetime.now().strftime('%Y-%m-%d')
 
-        with Path('man_metadata.json').open() as f:
+        with Path('data/man_metadata.json').open() as f:
             man_data = json.load(f)
 
         man_uris = {d['name']: d['uri'] for d in man_data}
 
-        with Path('exec_data.json').open() as f:
+        with Path('data/exec_data.json').open() as f:
             exec_data = json.load(f)
 
         exec_names = {d['name'] for d in exec_data}
@@ -59,7 +59,7 @@ class GenSite:
                 self.generate_exec_page(data, man_uris)
         self.generate_exec_list(exec_data)
 
-        with Path('builtin_metadata.json').open() as f:
+        with Path('data/builtin_metadata.json').open() as f:
             builtin_data = json.load(f)
 
         for data in builtin_data:
