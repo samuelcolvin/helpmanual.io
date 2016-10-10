@@ -6,7 +6,7 @@ from pathlib import Path
 
 class ManMetadata:
     def __init__(self):
-        self.raw_man = Path('./raw/man')
+        self.raw_man = Path('data/man')
         self.data = []
         for man_id in range(1, 9):
             dir = self.raw_man / 'man{}'.format(man_id)

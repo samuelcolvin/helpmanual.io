@@ -23,22 +23,31 @@ dt a {
   font-weight: normal;
 }
 
+$indent-terminal: 40px;
+
 .terminal-like {
   margin-bottom: 20px;
   background-color: #2d3134;
   color: $term-text-colour;
   border-radius: 4px;
-  padding: 20px 20px 20px 50px;
+  padding: 20px 20px 20px $indent-terminal;
   font-family: 'Ubuntu Mono', monospace;
   line-height: 1em;
   word-wrap: break-word;
   h3, h4, h5 {
-    margin-left: -30px;
+    margin-left: -($indent-terminal - 15px);
     color: map-get($colour-grid-1, "lighten-3");
   }
   h3, h4 {
     font-size: 1.2rem;
     margin-bottom: 4px;
+  }
+  b, strong {
+    font-weight: 700;
+  }
+  i {
+    text-decoration: underline;
+    font-style: normal;
   }
   a {
     text-decoration: none !important;
@@ -49,7 +58,10 @@ dt a {
     white-space: pre-wrap;
   }
   p.indented {
-    padding-left: 40px;
+    padding-left: ($indent-terminal - 5px);
+  }
+  dd {
+    margin-left: ($indent-terminal - 5px);
   }
   table {
     margin: 10px 0;

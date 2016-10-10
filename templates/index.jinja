@@ -20,8 +20,8 @@
           </div>
           <ul class="list-group list-group-flush">
             {% for link in section.links %}
-              <li class="list-group-item">
-                <a href="{{ link.uri }}">{{ link.name }}</a> &bull; {{ link.description|truncate(50) }}
+              <li class="list-group-item text-truncate">
+                <a href="{{ link.uri }}">{{ link.name }}</a> &bull; {{ link.description|truncate(100) }}
               </li>
             {% endfor %}
           </ul>

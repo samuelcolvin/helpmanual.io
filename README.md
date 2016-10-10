@@ -37,9 +37,9 @@
 
 # TODO
 
-* add executed functions
 * add search
 * links between pages
+* add `include.h` pages.
 * add json ld
 * find package page came from eg. apt package
 * full build command with vagrant

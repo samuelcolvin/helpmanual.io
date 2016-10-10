@@ -7,9 +7,9 @@ from utils import man_to_txt, generate_description
 
 class ExtractBuiltins:
     def __init__(self):
-        self.html_root = Path('html_raw').resolve()
+        self.html_root = Path('data/html').resolve()
 
-        text = man_to_txt(Path('./raw/man/man1/bash.1'))
+        text = man_to_txt(Path('data/man/man1/bash.1'))
         m = re.search('\n\nSHELL BUILTIN COMMANDS\n(.*?)\n\nRESTRICTED SHELL\n', text, flags=re.S)
         text = m.groups()[0]
         m = re.search('\n(\s{7}: \[arguments\].*)', text, flags=re.S)

@@ -4,7 +4,7 @@ from pathlib import Path
 
 def extract_man():
     src = Path('/usr/share/man/').resolve()
-    dst = Path('./raw/man')
+    dst = Path('data/man')
     dst.mkdir(parents=True, exist_ok=True)
     dst = dst.resolve()
     for i in range(1, 9):

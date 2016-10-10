@@ -7,8 +7,8 @@ from utils import man_to_txt, txt_to_html
 
 class Generate:
     def __init__(self):
-        self.src_path = Path('raw/man').resolve()
-        self.dst_path = Path('html_raw/man')
+        self.src_path = Path('data/man').resolve()
+        self.dst_path = Path('data/html/man')
         self.dst_path.mkdir(parents=True, exist_ok=True)
         self.dst_path = self.dst_path.resolve()
         self.count = 0

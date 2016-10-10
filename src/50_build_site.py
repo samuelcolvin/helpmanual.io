@@ -4,6 +4,7 @@ import shutil
 from datetime import datetime
 from operator import itemgetter
 from pathlib import Path
+from textwrap import dedent
 
 from aiohttp_devtools.tools.sass_generator import SassGenerator
 from jinja2 import Environment, FileSystemLoader, Markup
@@ -19,6 +20,17 @@ MAN_SECTIONS = {
     6: 'Games',
     7: 'Miscellaneous',
     8: 'Admin commands',
+}
+
+POPULAR_COMMANDS = {
+    'awk',
+    'bash',
+    'curl',
+    'find',
+    'grep',
+    'iptables',
+    'rsync',
+    'sed',
 }
 
 
@@ -37,12 +49,23 @@ class GenSite:
         )
         self.env.filters['static'] = self._static_filter
 
-        self.html_root = Path('html_raw').resolve()
+        self.html_root = Path('data/html').resolve()
         self.pages = []
         self.now = datetime.now().strftime('%Y-%m-%d')
 
         with Path('data/man_metadata.json').open() as f:
-            man_data = json.load(f)
+            man_data = json.load(f)  # type List
+        man_data.append({
+            'description': 'blerp - FILTERS LOCAL OR REMOTE FILES OR RESOURCES USING PATTERNS',
+            'extra1': '1692',
+            'extra2': 'Imagination',
+            'extra3': 'XKCD',
+            'man_id': 1,
+            'name': 'blerp',
+            'raw_path': 'xkcd',
+            'uri': 'man1/blerp',
+        })
+        man_data.sort(key=lambda v: (v['man_id'], v['name']))
 
         man_uris = {d['name']: d['uri'] for d in man_data}
 
@@ -106,11 +129,13 @@ class GenSite:
             ('extra &bull; 2 &bull; Source', ctx.get('extra2')),
             ('extra &bull; 3 &bull; Book', ctx.get('extra3')),
         ] if value]
+        man_comments = ctx.get('man_comments', None)
 
         ctx.update(
             page_title='man{man_id}/{name} | man page'.format(**ctx),
             title='{name} man page'.format(**ctx),
             content=content,
+            man_comments=man_comments and dedent(man_comments),
             crumbs=[
                 {'name': 'man{man_id}'.format(**ctx)},
             ],
@@ -223,7 +248,7 @@ class GenSite:
                 dict(
                     title='Help Output',
                     description='Output of help commands',
-                    links=[b for b in self._sort_help(exec_data)[:9] if len(b['name']) > 1],
+                    links=[p for p in self._sort_help(exec_data) if p['name'] in POPULAR_COMMANDS],
                     more='/help',
                 ),
             ]
