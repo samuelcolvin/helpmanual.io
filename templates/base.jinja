@@ -8,13 +8,11 @@
     <meta name="author" content="Samuel Colvin">
     <link rel="icon" href="{{ 'favicon.png'|static }}">
 
-    <title>{{ title }}</title>
+    <title>{{ page_title or title }}</title>
 
-    {# until we compile ourselves #}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ 'css/libraries.css'|static }}" rel="stylesheet">
 
     <link href="{{ 'css/theme.css'|static }}" rel="stylesheet">
-    <link href="https://helpmanual.io/static/css/theme.css" rel="stylesheet">
   </head>
 
   <body>
@@ -48,6 +46,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
+{#    <script src="{{ 'libs/js/bootstrap.min.js'|static }}"></script>#}
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

@@ -2,34 +2,40 @@
 
 {% block content %}
   <h1>{{ name }}</h1>
-  <ul class="nav nav-pills">
-    <li class="nav-item">
-      <a class="nav-link active" href="">Man Page</a>
-    </li>
-    {% if exec_varient %}
-      <li class="nav-item">
-        <a class="nav-link" href="/help/{{ name }}/">Help Output</a>
-      </li>
-    {% endif %}
-  </ul>
 
   <div>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" href="">Man Page</a>
+      </li>
+      <li class="nav-item">
+        {% if exec_variant %}
+          <a class="nav-link" href="/help/{{ name }}/">Help Output</a>
+        {% else %}
+          <a class="nav-link disabled" href="#">Help Output</a>
+        {% endif %}
+      </li>
+    </ul>
+  </div>
+
+  <div>
+    <h2>GNU man page</h2>
     <p class="lead">
       {{ description }}
     </p>
-    <h2>GNU man page</h2>
-    <div class="row">
-      {% for label, value in details %}
-        <div class="col-md-6">
-          <div class="terminal-like detail">
+
+    <div class="terminal-like">
+      <div class="row">
+        {% for label, value in details %}
+          <div class="col-md-6 detail">
             <h5>{{ label|safe }}</h5>
             <div class="value">{{ value }}</div>
           </div>
-        </div>
-        {% if loop.index is even %}
-          </div><div class="row">
-        {% endif %}
-      {% endfor %}
+          {% if loop.index is even and not loop.last %}
+            </div><div class="row">
+          {% endif %}
+        {% endfor %}
+      </div>
     </div>
 
     {% if man_comments %}

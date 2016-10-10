@@ -1,0 +1,8 @@
+{
+  "download_root": "styles/libs",
+  "libs": {
+    "https://github.com/twbs/bootstrap/archive/v4.0.0-alpha.4.zip": {
+      "[^/]*?/scss/(.+\\.scss)$": "bootstrap/{name}"
+    }
+  }
+}

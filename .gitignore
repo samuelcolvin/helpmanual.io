@@ -8,3 +8,4 @@ site/
 *.py[cod]
 data
 exec_data.json
+styles/libs

@@ -26,7 +26,7 @@ def txt_to_html(man_txt: str):
     return '\n'.join(html_lines).strip('\n')
 
 
-def generate_description(first_line):
+def generate_description(first_line: str, extra: list=None):
     first_line = first_line.strip(' ')
     full = True
     try:
@@ -34,6 +34,10 @@ def generate_description(first_line):
         assert s_end > 20
     except (ValueError, AssertionError):
         s_end = len(first_line)
+        if s_end < 20 and extra:
+            new_line = first_line + ' ' + ' '.join(l.strip(' ') for l in extra if l.strip(' '))
+            return generate_description(new_line)
+
     if s_end > 140:
         full = False
         s_end = 137
