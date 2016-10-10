@@ -1,20 +1,19 @@
 # helpmanual
 
+To deploy
 
-# Categories:
-
-* `commands` - eg. things installed with `apt`
-* `builtins` - eg. `compgen -b`
-* pypi
-* npm
-* perhaps other packages managers eg. PHP, CRAN.
-* specific commands git, docker, sublime, atom, aws, dropbox
+```
+python src/50_build_site.py
+aws s3 --profile personal sync site/ s3://helpmanual.io/ --acl public-read
+```
 
 ## sources
 
 * pypi
 * npm
 * gem
+* https://www.staticgen.com/ top 10
+* go
 * composer/packager
 * cran
 * cargo
@@ -41,8 +40,8 @@
 * links between pages
 * add `include.h` pages.
 * add json ld
-* find package page came from eg. apt package
 * full build command with vagrant
+* find package page came from eg. apt package
 * use http://www.wordfrequency.info/free.asp for stopwords when generating links.
 
 # Processing pipeline

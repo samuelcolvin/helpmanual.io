@@ -132,7 +132,7 @@ class GenSite:
         man_comments = ctx.get('man_comments', None)
 
         ctx.update(
-            page_title='man{man_id}/{name} | man page'.format(**ctx),
+            page_title='{name} &bull; man page'.format(**ctx),
             title='{name} man page'.format(**ctx),
             content=content,
             man_comments=man_comments and dedent(man_comments),
@@ -176,7 +176,7 @@ class GenSite:
         content = re.sub('(</?)h2>', r'\1h4>', content)
 
         ctx.update(
-            page_title='builtin/{name} | man page'.format(**ctx),
+            page_title='{name} &bull; man page'.format(**ctx),
             title='{name} man page'.format(**ctx),
             content=content,
             crumbs=[
@@ -198,8 +198,8 @@ class GenSite:
         help_lines = ctx['help_msg'].strip('\n').split('\n')
         uri = 'help/{name}/'.format(**ctx)
         ctx.update(
-            page_title='help/{name} | help page'.format(**ctx),
-            title='{name} help page'.format(**ctx),
+            page_title='{name} &bull; help'.format(**ctx),
+            title='{name} help'.format(**ctx),
             description=generate_description(help_lines[0], help_lines[1:10]),
             crumbs=[
                 {'name': 'help'},

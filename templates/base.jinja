@@ -8,7 +8,7 @@
     <meta name="author" content="Samuel Colvin">
     <link rel="icon" href="{{ 'favicon.png'|static }}">
 
-    <title>{{ page_title or title }}</title>
+    <title>{{ page_title|safe or title|safe }}</title>
 
     <link href="{{ 'css/libraries.css'|static }}" rel="stylesheet">
     <link href="{{ 'css/theme.css'|static }}" rel="stylesheet">
