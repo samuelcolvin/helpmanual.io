@@ -1,11 +1,9 @@
-html_raw
 .idea
-raw
 env
-*metadata.json
 site/
 *.swp
 *.py[cod]
 data
+old
 exec_data.json
-styles/libs
+static/libs

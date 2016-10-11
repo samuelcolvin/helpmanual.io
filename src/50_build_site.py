@@ -36,7 +36,6 @@ POPULAR_COMMANDS = {
 
 class GenSite:
     def __init__(self):
-
         self.site_dir = Path('site')
         if self.site_dir.exists():
             shutil.rmtree(str(self.site_dir))
@@ -93,12 +92,12 @@ class GenSite:
 
         self.generate_index(man_data, builtin_data, exec_data2)
         self.generate_extra()
-        SassGenerator('styles', 'site/static/css').build()
+        self.generate_static()
 
     def _static_filter(self, path):
         return '/static/{}'.format(path.lstrip('/'))
 
-    def render(self, rel_path: str, template: str, **context):
+    def render(self, rel_path: str, template: str, sitemap_index: int=None, **context):
         template = self.env.get_template(template)
 
         assert rel_path and not rel_path.startswith('/'), repr(rel_path)
@@ -108,7 +107,11 @@ class GenSite:
 
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(template.render(**context))
-        self.pages.insert(0, '/' + rel_path)
+        url = re.sub('(/index)?\.html$', '', '/' + rel_path)
+        if sitemap_index is not None:
+            self.pages.insert(sitemap_index, url)
+        else:
+            self.pages.append(url)
 
     def generate_man_page(self, ctx, exec_names):
         html_path = self.html_root / 'man' / '{raw_path}.html'.format(**ctx)
@@ -226,6 +229,7 @@ class GenSite:
         self.render(
             'index.html',
             'index.jinja',
+            sitemap_index=0,
             title='helpmanual.io',
             description='man pages and help text for unix commands',
             skip_final_crumb=True,
@@ -259,6 +263,14 @@ class GenSite:
         self.render('robots.txt', 'robots.txt.jinja')
         self.render('humans.txt', 'humans.txt.jinja', now=self.now)
         self.render('404.html', 'stub.jinja', title='404', description='Page not found.', skip_final_crumb=True)
+
+    def generate_static(self):
+        SassGenerator('static', 'site/static/css').build()
+        for path in Path('static/favicons').resolve().iterdir():
+            if path.name == 'master.png':
+                continue
+            new_path = self.site_dir / path.name
+            shutil.copyfile(str(path.resolve()), str(new_path))
 
 
 if __name__ == '__main__':

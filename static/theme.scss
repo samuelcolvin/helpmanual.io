@@ -3,10 +3,7 @@
 $term-text-colour: #dde4e8;
 
 .bg-inverse {
-  background:
-          map-get($colour-grid-1, "darken-1")
-          linear-gradient(to bottom right, map-get($colour-grid-1, "base"),
-                                           map-get($colour-grid-1, "darken-2")) !important;
+  background-image: linear-gradient(to bottom right, map-get($colour-grid-1, "base"), map-get($colour-grid-1, "darken-2"));
 }
 
 b, strong {
