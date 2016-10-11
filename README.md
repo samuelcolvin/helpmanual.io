@@ -9,6 +9,8 @@ aws s3 --profile personal sync site/ s3://helpmanual.io/ --acl public-read
 
 ## sources
 
+* `manpages-posix-dev freebsd-manpages`
+
 * pypi
 * npm
 * gem
@@ -36,7 +38,6 @@ aws s3 --profile personal sync site/ s3://helpmanual.io/ --acl public-read
 
 # TODO
 
-* favicon
 * add search
 * links between pages
 * add `include.h` pages.
