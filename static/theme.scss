@@ -47,6 +47,9 @@ $indent-terminal: 40px;
     margin-top: 10px;
     margin-bottom: 4px;
   }
+  h3 {
+    margin-bottom: 10px;
+  }
   b, strong {
     font-weight: 700;
   }
@@ -63,10 +66,10 @@ $indent-terminal: 40px;
     white-space: pre-wrap;
   }
   p.indented {
-    padding-left: ($indent-terminal - 5px);
+    padding-left: $indent-terminal - 5px;
   }
   dd {
-    margin-left: ($indent-terminal - 5px);
+    margin-left: $indent-terminal - 5px;
   }
   table {
     margin: 10px 0;

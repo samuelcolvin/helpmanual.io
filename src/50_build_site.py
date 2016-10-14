@@ -20,6 +20,7 @@ MAN_SECTIONS = {
     6: 'Games',
     7: 'Miscellaneous',
     8: 'Admin commands',
+    9: 'Kernel routines',
 }
 
 POPULAR_COMMANDS = {
@@ -241,7 +242,7 @@ class GenSite:
                         'uri': 'man{}'.format(man_id),
                         'name': 'man{}'.format(man_id),
                         'description': MAN_SECTIONS[man_id],
-                    } for man_id in range(1, 9)],
+                    } for man_id in range(1, len(MAN_SECTIONS) + 1)],
                 ),
                 dict(
                     title='Bash Builtins',

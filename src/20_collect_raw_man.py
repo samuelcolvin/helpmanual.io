@@ -7,8 +7,12 @@ def extract_man():
     dst = Path('data/man')
     dst.mkdir(parents=True, exist_ok=True)
     dst = dst.resolve()
-    for i in range(1, 10):
+
+    i = 1
+    while True:
         dir = src / 'man{}'.format(i)
+        if not dir.exists():
+            break
         for p in dir.iterdir():
             if not p.is_file() or p.suffix != '.gz':
                 continue
@@ -19,6 +23,7 @@ def extract_man():
             new_path.parent.mkdir(parents=True, exist_ok=True)
             with gzip.open(str(p), mode='r') as f:
                 new_path.write_bytes(f.read())
+        i += 1
 
 
 if __name__ == '__main__':

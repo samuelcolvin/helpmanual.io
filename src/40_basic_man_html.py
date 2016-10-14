@@ -12,10 +12,14 @@ class Generate:
         self.dst_path.mkdir(parents=True, exist_ok=True)
         self.dst_path = self.dst_path.resolve()
         self.count = 0
-        for i in range(1, 9):
+        i = 1
+        while True:
             dir = self.src_path / 'man{}'.format(i)
+            if not dir.exists():
+                break
             os.chdir(str(dir))
             self.generate_directory(dir)
+            i += 1
         print('===\nTotal {} generated files'.format(self.count))
 
     def generate_directory(self, p: Path):
@@ -36,9 +40,9 @@ class Generate:
         new_path = new_path.with_suffix('{}.html'.format(new_path.suffix))
         if new_path.exists():
             return
-        if p.name in {'dmsetup.8', 'latex2man.1', 'groff_hdtbl.7', 'groff.7'}:
+        if p.name in {'dmsetup.8', 'latex2man.1', 'groff_hdtbl.7', 'groff.7', 'awk.1posix', 'printf.1posix'}:
             return new_path
-        # print(p)
+        print(p)
         try:
             html = man2html.man2html_file(p)
         except (UnicodeDecodeError, man2html.ManpageInvalid) as e:
