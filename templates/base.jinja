@@ -14,6 +14,10 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
 
+    {% if uri %}
+    <link rel="canonical" href="{{ uri }}">
+    {% endif %}
+
     <title>{{ page_title|safe or title|safe }}</title>
 
     <link href="{{ 'css/libraries.css'|static }}" rel="stylesheet">

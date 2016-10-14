@@ -9,7 +9,11 @@ aws s3 --profile personal sync site/ s3://helpmanual.io/ --acl public-read
 
 ## sources
 
-* `manpages-posix-dev freebsd-manpages`
+apt packages with man pages:
+
+* manpages-posix-dev
+* freebsd-manpages
+* avh-libc
 
 * pypi
 * npm
@@ -40,7 +44,8 @@ aws s3 --profile personal sync site/ s3://helpmanual.io/ --acl public-read
 
 * add search
 * links between pages
-* add `include.h` pages.
+* add `include.h` page links.
+* add "installed via" and package info pages
 * add json ld
 * full build command with vagrant
 * find package page came from eg. apt package

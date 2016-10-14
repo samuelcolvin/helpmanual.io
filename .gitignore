@@ -3,7 +3,6 @@ env
 site/
 *.swp
 *.py[cod]
-data
 old
 exec_data.json
 static/libs

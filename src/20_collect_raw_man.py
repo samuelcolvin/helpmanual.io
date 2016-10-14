@@ -7,7 +7,7 @@ def extract_man():
     dst = Path('data/man')
     dst.mkdir(parents=True, exist_ok=True)
     dst = dst.resolve()
-    for i in range(1, 9):
+    for i in range(1, 10):
         dir = src / 'man{}'.format(i)
         for p in dir.iterdir():
             if not p.is_file() or p.suffix != '.gz':
