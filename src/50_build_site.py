@@ -1,6 +1,7 @@
 import json
 import re
 import shutil
+from collections import OrderedDict
 from datetime import datetime
 from operator import itemgetter
 from pathlib import Path
@@ -9,7 +10,7 @@ from textwrap import dedent
 from aiohttp_devtools.tools.sass_generator import SassGenerator
 from jinja2 import Environment, FileSystemLoader, Markup
 
-from utils import generate_description
+from utils import generate_description, man_to_txt
 
 MAN_SECTIONS = {
     1: 'User Commands',
@@ -74,10 +75,12 @@ class GenSite:
 
         exec_names = {d['name'] for d in exec_data.values() if d}
 
+        print('generating man pages...')
         for data in man_data:
             self.generate_man_page(data, exec_names)
         self.generate_man_lists(man_data)
 
+        print('generating help pages...')
         exec_data2 = []
         for data in exec_data.values():
             if data is not None:
@@ -87,13 +90,20 @@ class GenSite:
         with Path('data/builtin_metadata.json').open() as f:
             builtin_data = json.load(f)
 
+        print('generating builtin pages...')
         for data in builtin_data:
             self.generate_builtin_page(data)
         self.generate_builtin_list(builtin_data)
 
+        print('generating search index...')
+        self.generate_search_index(man_data)
+        print('generating index page...')
         self.generate_index(man_data, builtin_data, exec_data2)
+        print('generating extras...')
         self.generate_extra()
+        print('generating static files...')
         self.generate_static()
+        print('done.')
 
     def _static_filter(self, path):
         return '/static/{}'.format(path.lstrip('/'))
@@ -108,11 +118,11 @@ class GenSite:
 
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(template.render(**context))
-        url = re.sub('(/index)?\.html$', '', '/' + rel_path)
+        uri = re.sub('(/index)?\.html$', '', '/' + rel_path)
         if sitemap_index is not None:
-            self.pages.insert(sitemap_index, url)
+            self.pages.insert(sitemap_index, uri)
         else:
-            self.pages.append(url)
+            self.pages.append(uri)
 
     def generate_man_page(self, ctx, exec_names):
         html_path = self.html_root / 'man' / '{raw_path}.html'.format(**ctx)
@@ -258,6 +268,46 @@ class GenSite:
                 ),
             ]
         )
+
+    def generate_search_index(self, man_data):
+        man_dir = Path('data/text')
+        search_data = []
+        for d in man_data:
+            man_path = man_dir / 'man' / '{raw_path}.txt'.format(**d)
+            body = man_path.read_text()
+            keywords = []
+            for f in ['raw_path' 'extra1' 'extra2' 'extra3' 'man_comments']:
+                v = d.get(f, None)
+                if v:
+                    keywords.append(d[f])
+            d.setdefault('man_comments', '')
+            search_data.append(OrderedDict([
+                ('name', d['name']),
+                ('uri', d['uri']),
+                ('description', d['description']),
+                ('keywords', ' '.join(keywords)),
+                ('body', body),
+            ]))
+
+        search_dir = self.site_dir / 'search'
+        subset = []
+        set_index = 0
+
+        def save_set():
+            nonlocal set_index, subset
+            set_index += 1
+            path = search_dir / '{}.json'.format(set_index)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open('w') as f:
+                json.dump(subset, f)
+            subset = []
+
+        for entry in search_data:
+            subset.append(entry)
+            if len(subset) >= 1000:
+                save_set()
+        if subset:
+            save_set()
 
     def generate_extra(self):
         self.render('sitemap.xml', 'sitemap.xml.jinja', pages=self.pages, now=self.now)

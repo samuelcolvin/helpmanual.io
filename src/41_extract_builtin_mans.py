@@ -8,7 +8,6 @@ from utils import man_to_txt, generate_description
 class ExtractBuiltins:
     def __init__(self):
         self.html_root = Path('data/html').resolve()
-
         text = man_to_txt(Path('data/man/man1/bash.1'))
         m = re.search('\n\nSHELL BUILTIN COMMANDS\n(.*?)\n\nRESTRICTED SHELL\n', text, flags=re.S)
         text = m.groups()[0]
@@ -76,4 +75,3 @@ class ExtractBuiltins:
 
 if __name__ == '__main__':
     ExtractBuiltins()
-
