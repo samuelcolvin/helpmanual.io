@@ -3,8 +3,14 @@
 To deploy
 
 ```
+./node_modules/.bin/webpack --progress --colors --optimize-minimize
 python src/50_build_site.py
 aws s3 --profile personal sync site/ s3://helpmanual.io/ --acl public-read
+```
+
+To watch js:
+```
+./node_modules/.bin/webpack --progress --colors --watch
 ```
 
 ## sources

@@ -1,13 +1,16 @@
 import $ from 'jquery'
 import Bloodhound from 'bloodhound-js'
 
-const SEARCH_URL = 'https://search.helpmanual.io/%QUERY'
-// const SEARCH_URL = 'http://localhost:5000/%QUERY'
+const SEARCH_URL = 'https://search.helpmanual.io/{query}'
+// const SEARCH_URL = 'http://localhost:5000/{query}'
 
 var search_source = new Bloodhound({
-  datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+  datumTokenizer: Bloodhound.tokenizers.whitespace,
   queryTokenizer: Bloodhound.tokenizers.whitespace,
-  remote: SEARCH_URL
+  remote: {
+    url: SEARCH_URL,
+    wildcard: '{query}'
+  }
 })
 
 const EMPTY = '<div class="no-results">No results found</div>'

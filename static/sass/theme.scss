@@ -125,16 +125,6 @@ $indent-terminal: 40px;
   }
 }
 
-@media (max-width: 767px) {
-  .navbar .form-control, .twitter-typeahead {
-    width: 100%;
-  }
-  .container {
-    padding-left: 5px;
-    padding-right: 5px;
-  }
-}
-
 $spinner-size: 20px;
 #spinner {
   width: $spinner-size;
@@ -176,6 +166,22 @@ $spinner-size: 20px;
   }
   .lead {
     font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  #index-content {
+    h1 {
+      font-size: 3rem;
+    }
+  }
+
+  .navbar #search-form {
+    width: 100%;
+  }
+  .container {
+    padding-left: 5px;
+    padding-right: 5px;
   }
 }
 
