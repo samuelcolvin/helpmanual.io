@@ -90,6 +90,96 @@ $indent-terminal: 40px;
   }
 }
 
+.navbar #search-form {
+  width: 500px;
+  margin: auto;
+  display: block !important;
+  height: 40px;
+
+  .twitter-typeahead, > .form-control {
+    width: 100%;
+    display: inline-block;
+  }
+
+  .form-control {
+    background-color: white;
+  }
+
+  .tt-menu {
+    background-color: white;
+    color: $body-color;
+    border: 1px solid map-get($colour-grid-1, "lighten-1");
+    border-top: none;
+    margin-top: -4px;
+    border-radius: 0 0 5px 5px;
+    width: 100%;
+  }
+  .tt-suggestion, .no-results {
+    cursor: pointer;
+    padding: 5px 20px;
+    border-top: 1px solid map-get($colour-grid-1, "lighten-1");
+    &.tt-cursor, &:hover {
+      color: #fff;
+      background-color: map-get($colour-grid-1, "lighten-1");
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .navbar .form-control, .twitter-typeahead {
+    width: 100%;
+  }
+  .container {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
+
+$spinner-size: 20px;
+#spinner {
+  width: $spinner-size;
+  height: $spinner-size;
+  display: none;
+  position: relative;
+  top: -28px;
+  left: calc(100% - 30px);
+
+  .b1, .b2 {
+    width: $spinner-size;
+    height: $spinner-size;
+    border-radius: 50%;
+    background-color: map-get($colour-grid-1, "darken-4");
+    opacity: 0.6;
+    animation: sk-bounce 2.0s infinite ease-in-out;
+  }
+
+  .b2 {
+    animation-delay: -1.0s;
+    position: relative;
+    top: -$spinner-size;
+  }
+
+  @keyframes sk-bounce {
+    0%, 100% {
+      transform: scale(0.0);
+    } 50% {
+      transform: scale(1.0);
+    }
+  }
+}
+
+#index-content {
+  text-align: center;
+  padding-top: 30px;
+  h1 {
+    font-size: 4.2rem;
+  }
+  .lead {
+    font-size: 1.5rem;
+  }
+}
+
+
 .white-space {
   white-space: pre-wrap;
 }
@@ -104,29 +194,4 @@ $indent-terminal: 40px;
 
 .no-pad {
   margin: 0 !important;
-}
-
-.twitter-typeahead {
-  width: 600px;
-  margin: auto;
-  display: block !important;
-  .tt-menu {
-    background-color: white;
-    color: $body-color;
-    border: 1px solid map-get($colour-grid-1, "lighten-1");
-    border-top: none;
-    margin-top: -4px;
-    border-radius: 0 0 5px 5px;
-  }
-  .form-control {
-    background-color: map-get($colour-grid-1, "lighten-5");
-  }
-  .tt-suggestion {
-    padding: 3px 20px;
-    border-top: 1px solid map-get($colour-grid-1, "lighten-1");
-    &.tt-cursor {
-      color: #fff;
-      background-color: map-get($colour-grid-1, "lighten-1");
-    }
-  }
 }

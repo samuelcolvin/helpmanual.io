@@ -27,24 +27,17 @@
   <body>
     <nav class="navbar navbar-fixed-top navbar-dark bg-inverse">
       <div class="container">
-        <form>
+        <form id="search-form">
           <input id="search" class="form-control" type="text" placeholder="Search...">
+          <div id="spinner">
+            <div class="b1"></div>
+            <div class="b2"></div>
+          </div>
         </form>
       </div>
     </nav>
 
     <div class="main container">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="/">home</a></li>
-          {% for crumb in crumbs %}
-          <li class="breadcrumb-item">
-              <a href="{{ crumb.link or '/' + crumb.name }}">{{ crumb.name }}</a>
-          </li>
-          {% endfor %}
-          {% if not skip_final_crumb %}
-            <li class="breadcrumb-item active">{{ name or title }}</li>
-          {% endif %}
-        </ol>
       {% block content %}{% endblock %}
     </div>
 

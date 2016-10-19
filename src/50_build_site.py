@@ -1,6 +1,7 @@
 import json
 import re
 import shutil
+import sys
 from collections import OrderedDict
 from datetime import datetime
 from operator import itemgetter
@@ -23,17 +24,6 @@ MAN_SECTIONS = {
     7: 'Miscellaneous',
     8: 'Admin commands',
     9: 'Kernel routines',
-}
-
-POPULAR_COMMANDS = {
-    'awk',
-    'bash',
-    'curl',
-    'find',
-    'grep',
-    'iptables',
-    'rsync',
-    'sed',
 }
 
 
@@ -75,29 +65,26 @@ class GenSite:
             exec_data = json.load(f)
 
         exec_names = {d['name'] for d in exec_data.values() if d}
-
-        print('generating man pages...')
-        for data in man_data:
-            self.generate_man_page(data, exec_names)
-        self.generate_man_lists(man_data)
-
-        print('generating help pages...')
         exec_data2 = []
-        for data in exec_data.values():
-            if data is not None:
-                exec_data2.append(self.generate_exec_page(data, man_uris))
-        self.generate_exec_list(exec_data2)
-
         with Path('data/builtin_metadata.json').open() as f:
             builtin_data = json.load(f)
 
-        print('generating builtin pages...')
-        for data in builtin_data:
-            self.generate_builtin_page(data)
-        self.generate_builtin_list(builtin_data)
+        if 'fast' not in sys.argv:
+            print('generating man pages...')
+            for data in man_data:
+                self.generate_man_page(data, exec_names)
 
-        print('generating search index...')
-        self.generate_search_index(man_data, builtin_data, exec_data2)
+            print('generating help pages...')
+            for data in exec_data.values():
+                if data is not None:
+                    exec_data2.append(self.generate_exec_page(data, man_uris))
+
+            print('generating builtin pages...')
+            for data in builtin_data:
+                self.generate_builtin_page(data)
+
+            print('generating search index...')
+            self.generate_search_index(man_data, builtin_data, exec_data2)
         print('generating index page...')
         self.generate_index(man_data, builtin_data, exec_data2)
         print('generating extras...')
@@ -151,34 +138,11 @@ class GenSite:
             title='{name} man page'.format(**ctx),
             content=content,
             man_comments=man_comments and dedent(man_comments),
-            crumbs=[
-                {'name': 'man{man_id}'.format(**ctx)},
-            ],
+            source='man{man_id}'.format(**ctx),
             details=details,
             exec_variant=ctx['name'] in exec_names,
         )
         self.render(ctx['uri'].lstrip('/') + '/', 'man.jinja', **ctx)
-
-    def generate_man_lists(self, data):
-        pages = []
-        man_id = 1
-        data_iter = iter(data)
-        while True:
-            pdata = next(data_iter, None)
-            if pdata is None or pdata['man_id'] != man_id:
-                self.render(
-                    'man{}/'.format(man_id),
-                    'list.jinja',
-                    title='man{}'.format(man_id),
-                    description='{} - {}'.format(man_id, MAN_SECTIONS[man_id]),
-                    pages=pages,
-                )
-                if pdata is None:
-                    break
-                else:
-                    man_id = pdata['man_id']
-                    pages = []
-            pages.append(pdata)
 
     def generate_builtin_page(self, ctx):
         html_path = self.html_root / ctx['raw_path']
@@ -194,20 +158,8 @@ class GenSite:
             page_title='{name} &bull; man page'.format(**ctx),
             title='{name} man page'.format(**ctx),
             content=content,
-            crumbs=[
-                {'name': 'builtins'},
-            ],
         )
         self.render(ctx['uri'].strip('/') + '/', 'builtin.jinja', **ctx)
-
-    def generate_builtin_list(self, data):
-        self.render(
-            'builtin/',
-            'list.jinja',
-            title='Bash Builtins',
-            description='Builtin bash methods',
-            pages=data,
-        )
 
     def generate_exec_page(self, ctx, man_uris):
         help_lines = ctx['help_msg'].strip('\n').split('\n')
@@ -216,9 +168,6 @@ class GenSite:
             page_title='{name} &bull; help'.format(**ctx),
             title='{name} help'.format(**ctx),
             description=generate_description(help_lines[0], help_lines[1:10]),
-            crumbs=[
-                {'name': 'help'},
-            ],
             man_variant_uri=man_uris.get(ctx['name'], None),
             uri=uri,
         )
@@ -228,15 +177,6 @@ class GenSite:
     def _sort_help(self, data):
         return sorted(data, key=itemgetter('name'))
 
-    def generate_exec_list(self, data):
-        self.render(
-            'help/',
-            'list.jinja',
-            title='Help Output',
-            description='Output of help commands',
-            pages=self._sort_help(data),
-        )
-
     def generate_index(self, man_data, builtin_data, exec_data):
         self.render(
             'index.html',
@@ -244,30 +184,6 @@ class GenSite:
             sitemap_index=0,
             title='helpmanual.io',
             description='man pages and help text for unix commands',
-            skip_final_crumb=True,
-            sections=[
-                dict(
-                    title='GNU manual pages',
-                    description='GNU man pages in 8 sections',
-                    links=[{
-                        'uri': 'man{}'.format(man_id),
-                        'name': 'man{}'.format(man_id),
-                        'description': MAN_SECTIONS[man_id],
-                    } for man_id in range(1, len(MAN_SECTIONS) + 1)],
-                ),
-                dict(
-                    title='Bash Builtins',
-                    description='Builtin bash methods',
-                    links=[b for b in builtin_data[:9] if len(b['name']) > 1],
-                    more='/builtin',
-                ),
-                dict(
-                    title='Help Output',
-                    description='Output of help commands',
-                    links=[p for p in self._sort_help(exec_data) if p['name'] in POPULAR_COMMANDS],
-                    more='/help',
-                ),
-            ]
         )
 
     def generate_search_index(self, man_data, builtin_data, exec_data):
@@ -334,7 +250,7 @@ class GenSite:
                 continue
             uris.add(entry['uri'])
             subset.append(entry)
-            if len(subset) >= 1000:
+            if len(subset) >= 500:
                 save_set()
         if subset:
             save_set()
@@ -351,7 +267,7 @@ class GenSite:
         self.render('sitemap.xml', 'sitemap.xml.jinja', pages=self.pages, now=self.now)
         self.render('robots.txt', 'robots.txt.jinja')
         self.render('humans.txt', 'humans.txt.jinja', now=self.now)
-        self.render('404.html', 'stub.jinja', title='404', description='Page not found.', skip_final_crumb=True)
+        self.render('404.html', 'stub.jinja', title='404', description='Page not found.')
 
     def generate_static(self):
         SassGenerator('static/sass', 'site/static/css').build()
@@ -360,7 +276,7 @@ class GenSite:
                 continue
             new_path = self.site_dir / path.name
             shutil.copyfile(str(path.resolve()), str(new_path))
-        for d in ['libs/js']:
+        for d in ['js', 'libs/js']:
             for path in Path('static/' + d).resolve().iterdir():
                 new_path = self.site_dir / 'static' / d / path.name
                 new_path.parent.mkdir(parents=True, exist_ok=True)

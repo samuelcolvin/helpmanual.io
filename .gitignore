@@ -6,4 +6,5 @@ site/
 old
 exec_data.json
 static/libs
+static/js
 node_modules
