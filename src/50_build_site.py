@@ -327,7 +327,12 @@ class GenSite:
                 json.dump(subset, f, indent=2)
             subset = []
 
+        uris = set()
         for entry in search_data:
+            if entry['uri'] in uris:
+                print('repeated uri "{uri}"'.format(**entry))
+                continue
+            uris.add(entry['uri'])
             subset.append(entry)
             if len(subset) >= 1000:
                 save_set()

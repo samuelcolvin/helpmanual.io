@@ -2,7 +2,6 @@ import $ from 'jquery'
 import Bloodhound from 'bloodhound-js'
 
 const SEARCH_DOMAIN = 'https://search.helpmanual.io/'
-// const SEARCH_DOMAIN = 'http://localhost:5000/'
 
 var search_source = new Bloodhound({
   datumTokenizer: Bloodhound.tokenizers.whitespace,
@@ -16,8 +15,6 @@ var search_source = new Bloodhound({
 const EMPTY = '<div>No results found</div>'
 
 $('#search').typeahead({
-  hint: true,
-  highlight: true,
   minLength: 2
 }, {
   source: search_source,
@@ -26,12 +23,19 @@ $('#search').typeahead({
   templates: {
     empty: EMPTY,
     suggestion: function(v) {
-      return `<div><b>${v.name}</b> – <span>${v.descr}</span></div>`
+      return `<div>
+  <div>
+    <span class="tag tag-default">${v.src}</span>
+    <b>${v.name}</b>
+  </div>
+  <div class="small">
+    ${v.description}
+  </div>
+</div>`
     }
   }
 })
 
 $('#search').bind('typeahead:select', function(ev, suggestion) {
-  console.log('Selection: ', suggestion)
   window.location = suggestion.uri
 })
