@@ -10,7 +10,7 @@ from textwrap import dedent
 from aiohttp_devtools.tools.sass_generator import SassGenerator
 from jinja2 import Environment, FileSystemLoader, Markup
 
-from utils import generate_description, man_to_txt
+from utils import generate_description
 
 MAN_SECTIONS = {
     1: 'User Commands',

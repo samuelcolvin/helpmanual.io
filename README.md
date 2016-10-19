@@ -25,6 +25,10 @@ apt packages with man pages:
 * cargo
 * julia pkg
 
+## more commands
+
+* postfix
+
 ## custom commands
 
 * git
@@ -42,7 +46,8 @@ apt packages with man pages:
 
 # TODO
 
-* add search
+* add search display
+* man to text fixes eg. `"\fBnpm-logout\fR - Log out of the registry"`
 * links between pages
 * add `include.h` page links.
 * add "installed via" and package info pages
