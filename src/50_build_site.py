@@ -9,6 +9,7 @@ from textwrap import dedent
 
 from aiohttp_devtools.tools.sass_generator import SassGenerator
 from jinja2 import Environment, FileSystemLoader, Markup
+from lxml import html
 
 from utils import generate_description
 
@@ -96,7 +97,7 @@ class GenSite:
         self.generate_builtin_list(builtin_data)
 
         print('generating search index...')
-        self.generate_search_index(man_data)
+        self.generate_search_index(man_data, builtin_data, exec_data2)
         print('generating index page...')
         self.generate_index(man_data, builtin_data, exec_data2)
         print('generating extras...')
@@ -269,7 +270,7 @@ class GenSite:
             ]
         )
 
-    def generate_search_index(self, man_data):
+    def generate_search_index(self, man_data, builtin_data, exec_data):
         man_dir = Path('data/text')
         search_data = []
         for d in man_data:
@@ -280,12 +281,36 @@ class GenSite:
                 v = d.get(f, None)
                 if v:
                     keywords.append(d[f])
-            d.setdefault('man_comments', '')
             search_data.append(OrderedDict([
                 ('name', d['name']),
                 ('uri', d['uri']),
-                ('description', d['description']),
+                ('src', 'man{man_id}'.format(**d)),
+                ('description', self.short_description(d['description'])),
                 ('keywords', ' '.join(keywords)),
+                ('body', body),
+            ]))
+        for d in builtin_data:
+            html_path = (self.html_root / d['raw_path']).resolve()
+            doc = html.fromstring(html_path.read_text())
+            body = doc.text_content().replace('\n', ' ')
+            search_data.append(OrderedDict([
+                ('name', d['name']),
+                ('uri', d['uri']),
+                ('src', 'builtin'),
+                ('description', d['description']),
+                ('keywords', ''),
+                ('body', body),
+            ]))
+        for d in exec_data:
+            body = '{help_msg} {version_msg}'.format(**d)
+            body = body.replace('\n', ' ')
+            body = re.sub('  +', ' ', body)
+            search_data.append(OrderedDict([
+                ('name', d['name']),
+                ('uri', '/' + d['uri']),
+                ('src', 'help'),
+                ('description', self.short_description(d['description'])),
+                ('keywords', '{help_arg} {version_arg}'.format(**d)),
                 ('body', body),
             ]))
 
@@ -296,10 +321,10 @@ class GenSite:
         def save_set():
             nonlocal set_index, subset
             set_index += 1
-            path = search_dir / '{}.json'.format(set_index)
+            path = search_dir / '{:02}.json'.format(set_index)
             path.parent.mkdir(parents=True, exist_ok=True)
             with path.open('w') as f:
-                json.dump(subset, f)
+                json.dump(subset, f, indent=2)
             subset = []
 
         for entry in search_data:
@@ -309,6 +334,14 @@ class GenSite:
         if subset:
             save_set()
 
+    @staticmethod
+    def short_description(description):
+        if ' - ' in description[:30]:
+            description = description[description.index(' - ') + 3:]
+        elif '-' in description[:30]:
+            description = description[description.index('-') + 1:]
+        return description.lstrip(' -')
+
     def generate_extra(self):
         self.render('sitemap.xml', 'sitemap.xml.jinja', pages=self.pages, now=self.now)
         self.render('robots.txt', 'robots.txt.jinja')
@@ -316,12 +349,17 @@ class GenSite:
         self.render('404.html', 'stub.jinja', title='404', description='Page not found.', skip_final_crumb=True)
 
     def generate_static(self):
-        SassGenerator('static', 'site/static/css').build()
+        SassGenerator('static/sass', 'site/static/css').build()
         for path in Path('static/favicons').resolve().iterdir():
             if path.name == 'master.png':
                 continue
             new_path = self.site_dir / path.name
             shutil.copyfile(str(path.resolve()), str(new_path))
+        for d in ['libs/js']:
+            for path in Path('static/' + d).resolve().iterdir():
+                new_path = self.site_dir / 'static' / d / path.name
+                new_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(str(path.resolve()), str(new_path))
 
 
 if __name__ == '__main__':

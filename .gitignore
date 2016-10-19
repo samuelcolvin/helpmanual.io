@@ -6,3 +6,4 @@ site/
 old
 exec_data.json
 static/libs
+node_modules

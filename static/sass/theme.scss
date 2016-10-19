@@ -105,3 +105,28 @@ $indent-terminal: 40px;
 .no-pad {
   margin: 0 !important;
 }
+
+.twitter-typeahead {
+  width: 600px;
+  margin: auto;
+  display: block !important;
+  .tt-menu {
+    background-color: white;
+    color: $body-color;
+    border: 1px solid map-get($colour-grid-1, "lighten-1");
+    border-top: none;
+    margin-top: -4px;
+    border-radius: 0 0 5px 5px;
+  }
+  .form-control {
+    background-color: map-get($colour-grid-1, "lighten-5");
+  }
+  .tt-suggestion {
+    padding: 3px 20px;
+    border-top: 1px solid map-get($colour-grid-1, "lighten-1");
+    &.tt-cursor {
+      color: #fff;
+      background-color: map-get($colour-grid-1, "lighten-1");
+    }
+  }
+}
