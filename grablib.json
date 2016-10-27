@@ -1,9 +1,9 @@
 {
-  "download_root": "static/libs",
+  "download_root": "static",
   "libs": {
     "https://github.com/twbs/bootstrap/archive/v4.0.0-alpha.4.zip": {
-      "[^/]*?/scss/(.+\\.scss)$": "bootstrap/{name}"
+      "[^/]*?/scss/(.+\\.scss)$": "sass/libs/bootstrap/{name}"
     },
-    "https://raw.githubusercontent.com/twitter/typeahead.js/v0.11.1/dist/typeahead.jquery.min.js": "js/typeahead.min.js"
+    "https://raw.githubusercontent.com/twitter/typeahead.js/v0.11.1/dist/typeahead.jquery.min.js": "libs/js/typeahead.min.js"
   }
 }

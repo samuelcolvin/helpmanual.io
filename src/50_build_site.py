@@ -42,6 +42,7 @@ POPULAR_COMMANDS = {
 
 class GenSite:
     def __init__(self):
+        self.debug = 'debug' in sys.argv
         self.site_dir = Path('site')
         if self.site_dir.exists():
             shutil.rmtree(str(self.site_dir))
@@ -56,6 +57,8 @@ class GenSite:
             static=self._static_filter,
             to_uri=self._to_uri,
         )
+        p = Path('static/sass/_embedded.scss')
+        self.env.globals['embedded_css'] = SassGenerator('static/sass').generate_css(p)
 
         self.html_root = Path('data/html').resolve()
         self.pages = []
@@ -85,6 +88,10 @@ class GenSite:
         with Path('data/builtin_metadata.json').open() as f:
             builtin_data = json.load(f)
 
+        print('generating builtin pages...')
+        for data in builtin_data:
+            self.generate_builtin_page(data)
+
         if 'fast' not in sys.argv:
             self.cross_linker = FindCrossLinks()
             with Path('data/cross_links.json').open() as f:
@@ -101,10 +108,6 @@ class GenSite:
             for data in exec_data.values():
                 if data is not None:
                     exec_data2.append(self.generate_exec_page(data, man_uris))
-
-            print('generating builtin pages...')
-            for data in builtin_data:
-                self.generate_builtin_page(data)
 
             print('generating search index...')
             self.generate_search_index(man_data, builtin_data, exec_data2)
@@ -300,7 +303,7 @@ class GenSite:
         self.render('404.html', 'stub.jinja', title='404', description='Page not found.')
 
     def generate_static(self):
-        SassGenerator('static/sass', 'site/static/css').build()
+        SassGenerator('static/sass', 'site/static/css', debug=self.debug).build()
         for path in Path('static/favicons').resolve().iterdir():
             if path.name == 'master.png':
                 continue

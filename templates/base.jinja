@@ -20,12 +20,13 @@
 
     <title>{{ page_title|safe or title|safe }}</title>
 
-    <link href="{{ 'css/libraries.css'|static }}" rel="stylesheet">
-    <link href="{{ 'css/theme.css'|static }}" rel="stylesheet">
+    <style>
+      {{ embedded_css|safe }}
+    </style>
   </head>
 
-  <body>
-    <nav class="navbar navbar-fixed-top navbar-dark bg-inverse">
+  <body class="init">
+    <nav class="navbar navbar-fixed-top navbar-dark bg-inverse init-hidden">
       <div class="container">
         <form id="search-form">
           <input id="search" class="form-control" type="text" placeholder="Search...">
@@ -40,6 +41,32 @@
     <div class="main container">
       {% block content %}{% endblock %}
     </div>
+
+    <noscript id="deferred-styles">
+      <link href="{{ 'css/libraries.css'|static }}" rel="stylesheet">
+      <link href="{{ 'css/theme.css'|static }}" rel="stylesheet">
+    </noscript>
+    <script>
+      function load() {
+        var loadDeferredStyles = function () {
+          var addStylesNode = document.getElementById('deferred-styles');
+          var replacement = document.createElement('div');
+          replacement.innerHTML = addStylesNode.textContent;
+          document.body.appendChild(replacement)
+          addStylesNode.parentElement.removeChild(addStylesNode);
+        };
+        var raf = requestAnimationFrame || mozRequestAnimationFrame ||
+                webkitRequestAnimationFrame || msRequestAnimationFrame;
+        if (raf) raf(function () {
+          window.setTimeout(loadDeferredStyles, 0);
+        });
+        else window.addEventListener('load', loadDeferredStyles);
+        document.getElementsByTagName('body')[0].className = '';
+      }
+      if (window.location.href.includes('css')) {
+        setTimeout('load()', 1000);
+      }
+    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js"></script>
