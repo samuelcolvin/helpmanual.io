@@ -84,9 +84,9 @@ class ManMetadata:
                     if len(th_items) > 2:
                         th_items = th_items[2:]
                         try:
-                            extra1 = th_items[0]
-                            extra2 = th_items[1].strip('\ &')
-                            extra3 = th_items[2].strip('\ &')
+                            extra1 = self.groff_escape(th_items[0])
+                            extra2 = self.groff_escape(th_items[1].strip('\ &'))
+                            extra3 = self.groff_escape(th_items[2].strip('\ &'))
                         except IndexError:
                             pass
                 if revision_date is None and line.startswith('.Dd'):
@@ -135,7 +135,7 @@ class ManMetadata:
             raise RuntimeError('no description for {}\n"{}"'.format(p, '\n'.join(head)))
 
         description = re.sub(r'\\s[\-0-9]+', '', description.strip(' ')).replace('\\-', '-').strip(' -,')
-        description = re.sub(r'\\f(B|R)', '', description)
+        description = self.groff_escape(description)
 
         man_comments = (
             '\n'.join(man_comments)
@@ -168,6 +168,15 @@ class ManMetadata:
         )
         data = {k: v for k, v in data.items() if v}
         self.data.append(data)
+
+    @staticmethod
+    def groff_escape(s):
+        s = re.sub(r'\\f[A-Z]', '', s)
+        s = re.sub(r'\\&', '', s)
+        s = re.sub(r'\\\(em', '', s)
+        s = re.sub(r'\\s\+\d', '', s)
+        s = re.sub(r'\\', '', s)
+        return s
 
     def get_uri_name(self, man_id, p):
         uri_name = re.sub('\.{}$'.format(man_id), '', p.name)

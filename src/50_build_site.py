@@ -52,7 +52,10 @@ class GenSite:
             trim_blocks=True,
             lstrip_blocks=True,
         )
-        self.env.filters['static'] = self._static_filter
+        self.env.filters.update(
+            static=self._static_filter,
+            to_uri=self._to_uri,
+        )
 
         self.html_root = Path('data/html').resolve()
         self.pages = []
@@ -114,7 +117,10 @@ class GenSite:
         print('done.')
 
     def _static_filter(self, path):
-        return '/static/{}'.format(path.lstrip('/'))
+        return '/static/{}'.format(path.strip('/'))
+
+    def _to_uri(self, uri):
+        return '/' + uri.strip('/')
 
     def render(self, rel_path: str, template: str, sitemap_index: int=None, **context):
         template = self.env.get_template(template)

@@ -31,10 +31,6 @@ apt packages with man pages:
 * cargo
 * julia pkg
 
-## more commands
-
-* postfix
-
 ## custom commands
 
 * git
