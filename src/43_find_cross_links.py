@@ -1,4 +1,4 @@
-from cross_check_links import FindCrossLinks
+from cross_links import FindCrossLinks
 
 if __name__ == '__main__':
     fcl = FindCrossLinks()

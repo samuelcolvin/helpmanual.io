@@ -13,7 +13,7 @@ from jinja2 import Environment, FileSystemLoader, Markup
 from lxml import html
 
 from utils import generate_description
-from cross_check_links import FindCrossLinks
+from cross_links import FindCrossLinks
 
 MAN_SECTIONS = {
     1: 'User Commands',
