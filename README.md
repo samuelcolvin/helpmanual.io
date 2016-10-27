@@ -50,9 +50,18 @@ apt packages with man pages:
 * apache
 * ha-proxy
 
+## more man pages
+
+https://www.freebsd.org/cgi/man.cgi/faq.html
+
 # TODO
 
-* add search display
+* find cross links
+  * resolve 404s
+  * add scroll spy
+* remove render blocking css above the fold
+* add posix page as tab and change search badge
+
 * man to text fixes eg. `"\fBnpm-logout\fR - Log out of the registry"`
 * links between pages
 * add `include.h` page links.
