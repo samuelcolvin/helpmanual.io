@@ -13,6 +13,7 @@ from jinja2 import Environment, FileSystemLoader, Markup
 from lxml import html
 
 from utils import generate_description
+from cross_check_links import FindCrossLinks
 
 MAN_SECTIONS = {
     1: 'User Commands',
@@ -24,6 +25,18 @@ MAN_SECTIONS = {
     7: 'Miscellaneous',
     8: 'Admin commands',
     9: 'Kernel routines',
+}
+
+# for now these are just for references
+POPULAR_COMMANDS = {
+    'awk',
+    'bash',
+    'curl',
+    'find',
+    'grep',
+    'iptables',
+    'rsync',
+    'sed',
 }
 
 
@@ -70,9 +83,16 @@ class GenSite:
             builtin_data = json.load(f)
 
         if 'fast' not in sys.argv:
+            self.cross_linker = FindCrossLinks()
+            with Path('data/cross_links.json').open() as f:
+                self.cross_links = json.load(f)  # type Dict
+
             print('generating man pages...')
             for data in man_data:
-                self.generate_man_page(data, exec_names)
+                try:
+                    self.generate_man_page(data, exec_names)
+                except Exception as e:
+                    raise RuntimeError('error on {}'.format(data['uri'])) from e
 
             print('generating help pages...')
             for data in exec_data.values():
@@ -122,17 +142,19 @@ class GenSite:
         content = html_path.read_text()
         if '<h2>' in content[:200]:
             content = content[content.index('<h2>'):]
+        content = self.cross_linker.replace_cross_links(ctx, content)
         content = re.sub('(</?)h2>', r'\1h4>', content)
 
         details = [(label, value) for label, value in [
             ('Man Section', Markup('{} &bull; {}'.format(ctx['man_id'], MAN_SECTIONS[ctx['man_id']]))),
             ('Document Date', ctx.get('doc_date')),
-            ('extra &bull; 1 &bull; Version', ctx.get('extra1')),
-            ('extra &bull; 2 &bull; Source', ctx.get('extra2')),
-            ('extra &bull; 3 &bull; Book', ctx.get('extra3')),
+            ('extra &bull; Version', ctx.get('extra1')),
+            ('extra &bull; Source', ctx.get('extra2')),
+            ('extra &bull; Book', ctx.get('extra3')),
         ] if value]
         man_comments = ctx.get('man_comments', None)
 
+        link_info = self.cross_links.get(ctx['uri'], {})
         ctx.update(
             page_title='{name} &bull; man page'.format(**ctx),
             title='{name} man page'.format(**ctx),
@@ -141,6 +163,8 @@ class GenSite:
             source='man{man_id}'.format(**ctx),
             details=details,
             exec_variant=ctx['name'] in exec_names,
+            outbound_links=link_info.get('outbound', {}).items(),
+            inbound_links=link_info.get('inbound', {}).items(),
         )
         self.render(ctx['uri'].lstrip('/') + '/', 'man.jinja', **ctx)
 

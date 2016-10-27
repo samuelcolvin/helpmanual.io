@@ -27,10 +27,7 @@ class Generate:
         count_b4 = self.count
         for pp in p.iterdir():
             if pp.is_file() and pp.name:
-                new_path = self.generate_file(pp)
-                if new_path:
-                    print('{} not generated with man2html, trying text'.format(new_path))
-                    self.fallback_generate_file(pp, new_path)
+                self.generate_file(pp)
 
         print('  {} files generated'.format(self.count - count_b4))
 
@@ -38,6 +35,8 @@ class Generate:
         rel_path = p.relative_to(self.src_path)
         new_path = self.dst_path / rel_path
         new_path = new_path.with_suffix('{}.txt'.format(new_path.suffix))
+        if new_path.exists():
+            return
 
         text = man_to_txt(p)
         text = re.sub('[\r\n\t]', ' ', text)

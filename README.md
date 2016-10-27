@@ -60,16 +60,11 @@ https://www.freebsd.org/cgi/man.cgi/faq.html
   * resolve 404s
   * add scroll spy
 * remove render blocking css above the fold
-* add posix page as tab and change search badge
 
-* man to text fixes eg. `"\fBnpm-logout\fR - Log out of the registry"`
-* links between pages
-* add `include.h` page links.
 * add "installed via" and package info pages
-* add json ld
+* add posix page as tab and change search badge
 * full build command with vagrant
-* find package page came from eg. apt package
-* use http://www.wordfrequency.info/free.asp for stopwords when generating links.
+* add json ld
 
 # Processing pipeline
 

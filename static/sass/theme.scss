@@ -29,6 +29,10 @@ dt a {
 
 $indent-terminal: 40px;
 
+.above-terminal {
+  min-height: 30px;
+}
+
 .terminal-like {
   margin-bottom: 20px;
   background-color: #2d3134;
@@ -42,7 +46,7 @@ $indent-terminal: 40px;
     margin-left: -($indent-terminal - 15px);
     color: map-get($colour-grid-1, "lighten-3");
   }
-  h3, h4 {
+  h3, h4, h5 {
     font-size: 1.2rem;
     margin-top: 10px;
     margin-bottom: 4px;
@@ -87,6 +91,14 @@ $indent-terminal: 40px;
     display: block;
     padding-top: 10px;
     color: #666;
+  }
+}
+
+.sidebar {
+  padding: 20px 20px 20px 30px;
+  h5 {
+    margin-left: -15px;
+    margin-top: 12px;
   }
 }
 

@@ -135,6 +135,7 @@ class ManMetadata:
             raise RuntimeError('no description for {}\n"{}"'.format(p, '\n'.join(head)))
 
         description = re.sub(r'\\s[\-0-9]+', '', description.strip(' ')).replace('\\-', '-').strip(' -,')
+        description = re.sub(r'\\f(B|R)', '', description)
 
         man_comments = (
             '\n'.join(man_comments)

@@ -1,3 +1,4 @@
+import json
 import subprocess
 from pathlib import Path
 
@@ -47,3 +48,15 @@ def generate_description(first_line: str, extra: list=None):
     if not full:
         description += '...'
     return description
+
+
+class UniversalEncoder(json.JSONEncoder):
+    ENCODER_BY_TYPE = {
+        set: list,
+        frozenset: list,
+        bytes: lambda o: o.decode(),
+    }
+
+    def default(self, obj):
+        encoder = self.ENCODER_BY_TYPE[type(obj)]
+        return encoder(obj)
