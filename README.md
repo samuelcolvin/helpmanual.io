@@ -52,8 +52,10 @@ https://www.freebsd.org/cgi/man.cgi/faq.html
 # TODO
 
 * static asset renaming with hash (browser cache time is 1 year)
-* fix mobile UX
 * add "installed via" and package info pages
+* search improvements eg. ranking
+* remove links to self
+* use NAME not PROLOG for description on posix pages 
 * add posix page as tab and change search badge
 * full build command with vagrant
 * add json ld

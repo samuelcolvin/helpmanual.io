@@ -2,6 +2,12 @@
 
 $term-text-colour: #dde4e8;
 
+@media (max-width: 768px) {
+  html {
+    font-size: 14px !important;
+  }
+}
+
 body {
   margin: 0;
   background-color: $body-bg;

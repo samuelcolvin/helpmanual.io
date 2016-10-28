@@ -2,6 +2,12 @@
 @import 'fonts';
 @import 'libs/bootstrap/bootstrap';
 
+// TODO: remove once the changes to inline are deployed
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
 
 $term-text-colour: #dde4e8;
 
@@ -19,6 +25,10 @@ b, strong {
 
 .nav-tabs {
   margin: 15px 0;
+}
+
+.main.container {
+  overflow: hidden;
 }
 
 .sidebar {
