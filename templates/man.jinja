@@ -1,12 +1,12 @@
 {% extends 'base.jinja' %}
 
 {% block content %}
-  <div class="h2 pull-xs-right init-hidden">
+  <div class="h2 pull-right show-late">
     <span class="tag tag-default">{{ source }}</span>
   </div>
   <h1>{{ name }}</h1>
 
-  <div class="init-hidden">
+  <div class="show-late">
     <ul class="nav nav-tabs">
       <li class="nav-item">
         <a class="nav-link active" href="">Man Page</a>
@@ -24,7 +24,29 @@
   <div>
     <h2>man page</h2>
     <div class="row">
-      <div class="col-md-3 push-md-9 hidden-sm-down init-hidden">
+      <div class="col-md-9">
+        <p class="lead above-terminal">
+          {{ description }}
+        </p>
+
+        {% if man_comments %}
+          <section id="man-comments hidden-sm-down" class="terminal-like">
+            <h3>Leading comments</h3>
+            <pre class="no-pad">{{ man_comments }}</pre>
+            <comment>
+              (The comments found at the beginning of the groff file "{{ raw_path }}".)
+            </comment>
+          </section>
+        {% endif %}
+        <section id="man-page" class="terminal-like">
+        <h3>{{ name }} ({{ man_id }})</h3>
+          <!-- man page content { -->
+          {{ content|safe }}
+          <!-- } end of man page content -->
+        </section>
+      </div>
+
+      <div class="col-md-3 hidden-sm-down show-late">
         <p class="above-terminal">
           &nbsp;
         </p>
@@ -50,27 +72,6 @@
             {% endfor %}
           {% endif %}
         </div>
-      </div>
-      <div class="col-md-9 pull-md-3">
-        <p class="lead above-terminal">
-          {{ description }}
-        </p>
-
-        {% if man_comments %}
-          <section id="man-comments hidden-sm-down" class="terminal-like">
-            <h3>Leading comments</h3>
-            <pre class="no-pad">{{ man_comments }}</pre>
-            <comment>
-              (The comments found at the beginning of the groff file "{{ raw_path }}".)
-            </comment>
-          </section>
-        {% endif %}
-        <section id="man-page" class="terminal-like">
-        <h3>{{ name }} ({{ man_id }})</h3>
-          <!-- man page content { -->
-          {{ content|safe }}
-          <!-- } end of man page content -->
-        </section>
       </div>
     </div>
   </div>

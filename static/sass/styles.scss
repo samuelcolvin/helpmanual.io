@@ -1,4 +1,7 @@
 @import 'variables';
+@import 'fonts';
+@import 'libs/bootstrap/bootstrap';
+
 
 $term-text-colour: #dde4e8;
 
@@ -10,17 +13,8 @@ b, strong {
   font-weight: 500;
 }
 
-.navbar {
-  animation: fadein 0.25s;
-}
-
-@keyframes fadein {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.show-late {
+  opacity: 1;
 }
 
 .nav-tabs {

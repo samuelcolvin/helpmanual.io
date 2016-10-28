@@ -52,11 +52,6 @@ https://www.freebsd.org/cgi/man.cgi/faq.html
 
 # TODO
 
-* find cross links
-  * resolve 404s
-  * add scroll spy
-* remove render blocking css above the fold
-
 * add "installed via" and package info pages
 * add posix page as tab and change search badge
 * full build command with vagrant

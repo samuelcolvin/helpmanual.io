@@ -1,21 +1,23 @@
 {% extends 'base.jinja' %}
 
 {% block content %}
-  <div class="h2 pull-xs-right init-hidden">
+  <div class="h2 pull-right show-late">
     <span class="tag tag-default">help</span>
   </div>
   <h1>{{ name }}</h1>
 
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link{{ '' if man_variant_uri else ' disabled' }}" href="{{ man_variant_uri or '#' }}">
-        Man Page
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link active" href="#">Help Output</a>
-    </li>
-  </ul>
+  <div class="show-late">
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link{{ '' if man_variant_uri else ' disabled' }}" href="{{ man_variant_uri or '#' }}">
+          Man Page
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="#">Help Output</a>
+      </li>
+    </ul>
+  </div>
 
   <div>
     <h2>Help Command</h2>

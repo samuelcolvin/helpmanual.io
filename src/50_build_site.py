@@ -1,6 +1,7 @@
 import json
 import re
 import shutil
+import subprocess
 import sys
 from collections import OrderedDict
 from datetime import datetime
@@ -43,6 +44,7 @@ POPULAR_COMMANDS = {
 class GenSite:
     def __init__(self):
         self.debug = 'debug' in sys.argv
+        self.fast = 'fast' in sys.argv
         self.site_dir = Path('site')
         if self.site_dir.exists():
             shutil.rmtree(str(self.site_dir))
@@ -57,8 +59,11 @@ class GenSite:
             static=self._static_filter,
             to_uri=self._to_uri,
         )
-        p = Path('static/sass/_embedded.scss')
-        self.env.globals['embedded_css'] = SassGenerator('static/sass').generate_css(p)
+        p = Path('static/sass/_inline.scss')
+        self.env.globals.update(
+            embedded_css=SassGenerator('static/sass', debug=self.debug).generate_css(p).strip('\n'),
+            debug=self.debug,
+        )
 
         self.html_root = Path('data/html').resolve()
         self.pages = []
@@ -92,7 +97,7 @@ class GenSite:
         for data in builtin_data:
             self.generate_builtin_page(data)
 
-        if 'fast' not in sys.argv:
+        if not self.fast:
             self.cross_linker = FindCrossLinks()
             with Path('data/cross_links.json').open() as f:
                 self.cross_links = json.load(f)  # type Dict
@@ -119,10 +124,12 @@ class GenSite:
         self.generate_static()
         print('done.')
 
-    def _static_filter(self, path):
+    @staticmethod
+    def _static_filter(path):
         return '/static/{}'.format(path.strip('/'))
 
-    def _to_uri(self, uri):
+    @staticmethod
+    def _to_uri(uri):
         return '/' + uri.strip('/')
 
     def render(self, rel_path: str, template: str, sitemap_index: int=None, **context):
@@ -303,17 +310,22 @@ class GenSite:
         self.render('404.html', 'stub.jinja', title='404', description='Page not found.')
 
     def generate_static(self):
+        print('compiling js...')
+        args = ('./node_modules/.bin/webpack', '--colors')
+        if not self.debug and not self.fast:
+            args += '--optimize-minimize',
+        subprocess.run(args, check=True)
+        print('compiling css...')
         SassGenerator('static/sass', 'site/static/css', debug=self.debug).build()
         for path in Path('static/favicons').resolve().iterdir():
             if path.name == 'master.png':
                 continue
             new_path = self.site_dir / path.name
             shutil.copyfile(str(path.resolve()), str(new_path))
-        for d in ['js', 'libs/js']:
-            for path in Path('static/' + d).resolve().iterdir():
-                new_path = self.site_dir / 'static' / d / path.name
-                new_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(str(path.resolve()), str(new_path))
+        for path in Path('static/js').resolve().iterdir():
+            new_path = self.site_dir / 'static/js' / path.name
+            new_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(str(path.resolve()), str(new_path))
 
 
 if __name__ == '__main__':

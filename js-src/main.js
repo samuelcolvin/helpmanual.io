@@ -48,3 +48,4 @@ $('#search').typeahead({
 }).on('typeahead:idle', function() {
   $index.fadeIn()
 })
+$('.navbar .container').show();

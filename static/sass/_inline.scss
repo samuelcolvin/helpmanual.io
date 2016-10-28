@@ -6,17 +6,34 @@ body {
   margin: 0;
   background-color: $body-bg;
   color: $body-color;
-  font-family: sans-serif;
+  font-family: Ubuntu, sans-serif;
 }
 
-.init {
-  .init-hidden {
-    display: none;
-  }
-  h1 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-  }
+.show-late {
+  opacity: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: .5rem;
+  font-weight: 500;
+}
+
+h1 {
+  font-size: $font-size-h1;
+}
+
+h2 {
+  font-size: $font-size-h2;
+}
+
+h3 {
+  font-size: $font-size-h3;
+}
+
+.navbar {
+  min-height: 56px;
+  position: fixed;
 }
 
 .container {
@@ -26,29 +43,34 @@ body {
   padding-right: 15px;
 }
 @media (min-width: 544px) {
-  .container {
-    max-width: 576px;
-  }
+  .container {max-width: 576px;}
 }
 @media (min-width: 768px) {
-  .container {
-    max-width: 720px;
-  }
+  .container {max-width: 720px;}
 }
 @media (min-width: 992px) {
-  .container {
-    max-width: 940px;
-  }
+  .container {max-width: 940px;}
 }
 @media (min-width: 1200px) {
-  .container {
-    max-width: 1110px;
-  }
+  .container {max-width: 1110px;}
 }
 
 .main.container {
   padding-top: 70px;
   padding-bottom: 50px;
+  animation: fadein 0.6s;
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  90% {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .breadcrumb a {
@@ -132,4 +154,15 @@ $indent-terminal: 40px;
 
 .no-pad {
   margin: 0 !important;
+}
+
+.pull-right {
+  float: right;
+}
+
+@media (min-width: 768px) {
+  .col-md-9 {
+    flex: 0 0 75%;
+    max-width: 75%;
+  }
 }
