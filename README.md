@@ -3,9 +3,8 @@
 To deploy
 
 ```
-./node_modules/.bin/webpack --progress --colors --optimize-minimize
 python src/50_build_site.py
-aws s3 --profile personal sync site/ s3://helpmanual.io/ --acl public-read
+aws s3 --profile personal sync site/ s3://helpmanual.io/
 ```
 
 To watch js:
@@ -52,6 +51,8 @@ https://www.freebsd.org/cgi/man.cgi/faq.html
 
 # TODO
 
+* static asset renaming with hash (browser cache time is 1 year)
+* fix mobile UX
 * add "installed via" and package info pages
 * add posix page as tab and change search badge
 * full build command with vagrant
