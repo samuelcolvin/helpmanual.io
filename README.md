@@ -12,6 +12,10 @@ To watch js:
 ./node_modules/.bin/webpack --progress --colors --watch
 ```
 
+To generate ansi html
+
+    script -e -q -c "man -P ul man" /dev/null | ansi2html > tar.html
+
 ## sources
 
 apt packages with man pages:
@@ -51,10 +55,12 @@ https://www.freebsd.org/cgi/man.cgi/faq.html
 
 # TODO
 
+* fix weird memory error eg on `man1/ul`
 * static asset renaming with hash (browser cache time is 1 year)
 * add "installed via" and package info pages
 * search improvements eg. ranking
 * remove links to self
+* fix single quotes in description, eg. `systemd-cat`
 * use NAME not PROLOG for description on posix pages 
 * add posix page as tab and change search badge
 * full build command with vagrant
