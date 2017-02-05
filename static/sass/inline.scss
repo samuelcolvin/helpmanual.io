@@ -44,6 +44,7 @@ header {
   margin: 0 auto;
 }
 
+$result-color: map-get($colour-grid, "darken-1");
 nav {
   background-color: $background-colour;
   z-index: 10;
@@ -52,10 +53,10 @@ nav {
   width: 100%;
   height: 40px;
   padding: 5px 0;
-  .container {
+  .content {
     display: flex;
     justify-content: space-between;
-    padding: 0 5px;
+    padding: 0 10px;
   }
   .about {
     color: $header-colour;
@@ -63,7 +64,7 @@ nav {
     padding-top: 11px;
   }
   #search-form {
-    width: 300px;
+    width: 500px;
     display: block !important;
 
     .twitter-typeahead, > .form-control {
@@ -78,19 +79,19 @@ nav {
       font-size: 1rem;
       line-height: 1.25;
       color: #55595c;
-      background-clip: padding-box;
-      border: 1px solid rgba(0,0,0,0.15);
+      //background-clip: padding-box;
+      border: 1px solid #ccc;
       border-radius: .25rem;
       outline: none;
       &:focus {
-        border: 1px solid map-get($colour-grid, "darken-1");
+        border: 1px solid $result-color;
       }
     }
 
     .tt-menu {
       background-color: white;
       color: #444;
-      border: 1px solid map-get($colour-grid, "darken-1");
+      border: 1px solid $result-color;
       border-top: none;
       margin-top: -4px;
       border-radius: 0 0 5px 5px;
@@ -99,45 +100,64 @@ nav {
     .tt-suggestion, .no-results {
       cursor: pointer;
       padding: 5px 20px;
-      border-top: 1px solid map-get($colour-grid, "darken-1");
+      border-top: 1px solid $result-color;
       &.tt-cursor, &:hover {
         color: #fff;
-        background-color: map-get($colour-grid, "darken-1");
+        background-color: $result-color;
       }
+    }
+    .tag {
+      background-color: $result-color;
+      display: inline-block;
+      padding: .25em .4em;
+      font-size: 75%;
+      font-weight: bold;
+      color: white;
+      //white-space: nowrap;
+      //vertical-align: baseline;
+      border-radius: .25rem;
+    }
+    small {
+      font-size: 80%;
+      display: block;
     }
   }
 }
 
-$spinner-size: 20px;
+
+
 #spinner {
-  width: $spinner-size;
-  height: $spinner-size;
   display: none;
   position: relative;
-  top: -28px;
+  top: -20px;
   left: calc(100% - 30px);
-
-  .b1, .b2 {
-    width: $spinner-size;
-    height: $spinner-size;
+  $size: 6px;
+  width: ($size + $size / 3 * 2) * 2;
+  height: $size;
+  > div {
+    width: $size;
+    height: $size;
+    margin: 0 $size / 3;
+    background-color: $result-color;
     border-radius: 50%;
-    background-color: map-get($colour-grid, "darken-4");
-    opacity: 0.6;
-    animation: sk-bounce 2.0s infinite ease-in-out;
+    border: 0;
+    display: inline-block;
+    vertical-align: top;
   }
+  transform-origin: center center;
+  will-change: transform;
+  animation: rotation 3s infinite ease;
+}
 
-  .b2 {
-    animation-delay: -1.0s;
-    position: relative;
-    top: -$spinner-size;
+@keyframes rotation {
+  0%, 4% {
+    transform: rotateZ(0deg)
   }
-
-  @keyframes sk-bounce {
-    0%, 100% {
-      transform: scale(0.0);
-    } 50% {
-      transform: scale(1.0);
-    }
+  46%, 54% {
+    transform: rotateZ(180deg)
+  }
+  96%, 100% {
+    transform: rotateZ(360deg)
   }
 }
 
@@ -189,7 +209,7 @@ $spinner-size: 20px;
 
 .terminal {
   padding: 0;
-  margin-top: 100px - $header-height;
+  margin-top: 80px - $header-height;
   background-color: #333333;
   color: white;
   border-radius: 5px;
@@ -212,17 +232,21 @@ main {
 $term-text-colour: #dde4e8;
 $indent-terminal: 40px;
 
+section.info {
+  margin: 15px 15px 20px;
+}
+
+.terminal-box {
+  padding: 0 0 0 $indent-terminal;
+}
+
 .terminal-like {
   margin-bottom: 20px;
-  //background-color: #2d3134;
   color: $term-text-colour;
-  border-radius: 4px;
-  padding: 0 0 0 $indent-terminal;
-  font-family: 'Ubuntu Mono', monospace;
   line-height: 1em;
   word-wrap: break-word;
   h3, h4, h5 {
-    margin-left: -($indent-terminal - 5px);
+    margin-left: -($indent-terminal - 10px);
     color: map-get($colour-grid, "lighten-3");
   }
   h3, h4, h5 {
@@ -269,6 +293,27 @@ $indent-terminal: 40px;
   comment {
     display: block;
     padding-top: 10px;
-    color: #666;
+    color: #888;
   }
+}
+
+.columns {
+  display: flex;
+  $main-width: 75%;
+  .main {
+    width: $main-width;
+    padding-right: 10px;
+  }
+  .sidebar {
+    width: 100% - $main-width;
+    border-left: 1px solid #666;
+  }
+}
+
+.no-pad {
+  margin: 0 !important;
+}
+
+.white-space {
+  white-space: pre-wrap;
 }

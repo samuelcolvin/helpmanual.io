@@ -1,78 +1,99 @@
 {% extends 'base.jinja' %}
 
 {% block content %}
-  <div class="h2 pull-right show-late">
-    <span class="tag tag-default">{{ source }}</span>
-  </div>
-  <h1>{{ name }}</h1>
-
-  <div class="show-late">
-    <ul class="nav nav-tabs">
-      <li class="nav-item">
-        <a class="nav-link active" href="">Man Page</a>
-      </li>
-      <li class="nav-item">
-        {% if exec_variant %}
-          <a class="nav-link" href="/help/{{ name }}/">Help Output</a>
-        {% else %}
-          <a class="nav-link disabled" href="#">Help Output</a>
-        {% endif %}
-      </li>
-    </ul>
-  </div>
-
-  <div>
-    <h2>man page</h2>
-    <div class="row">
-      <div class="col-md-9">
-        <p class="lead above-terminal">
-          {{ description }}
-        </p>
-
-        {% if man_comments %}
-          <section id="man-comments hidden-sm-down" class="terminal-like">
-            <h3>Leading comments</h3>
-            <pre class="no-pad">{{ man_comments }}</pre>
-            <comment>
-              (The comments found at the beginning of the groff file "{{ raw_path }}".)
-            </comment>
-          </section>
-        {% endif %}
-        <section id="man-page" class="terminal-like">
+  <section id="man-page" class="terminal-like">
+    <div class="columns">
+      <div class="main terminal-box">
         <h3>{{ name }} ({{ man_id }})</h3>
-          <!-- man page content { -->
-          {{ content|safe }}
-          <!-- } end of man page content -->
-        </section>
+        {% if man_comments %}
+          <h4>Leading comments</h4>
+          <pre class="no-pad">{{ man_comments }}</pre>
+          <comment>
+            (The comments found at the beginning of the groff file "{{ raw_path }}".)
+          </comment>
+        {% endif %}
+        <!-- man page content { -->
+        {{ content|safe }}
+        <!-- } end of man page content -->
       </div>
 
-      <div class="col-md-3 hidden-sm-down show-late">
-        <p class="above-terminal">
-          &nbsp;
-        </p>
-        <div class="terminal-like sidebar">
-          {% for label, value in details %}
-            <h5>{{ label|safe }}</h5>
-            <div class="value">{{ value }}</div>
-          {% endfor %}
-          {% if outbound_links %}
-            <h5>References</h5>
-            {% for link, text in outbound_links %}
-              <div>
-                <a href="{{ link }}">{{ text }}</a>
-              </div>
-            {% endfor %}
-          {% endif %}
-          {% if inbound_links %}
-            <h5>Referenced By</h5>
-            {% for link, text in inbound_links %}
+      <div class="sidebar terminal-box">
+        {% for label, value in details %}
+          <h5>{{ label|safe }}</h5>
+          <div class="value">{{ value }}</div>
+        {% endfor %}
+        {% if outbound_links %}
+          <h5>References</h5>
+          {% for link, text in outbound_links %}
             <div>
               <a href="{{ link }}">{{ text }}</a>
             </div>
-            {% endfor %}
-          {% endif %}
-        </div>
+          {% endfor %}
+        {% endif %}
+        {% if inbound_links %}
+          <h5>Referenced By</h5>
+          {% for link, text in inbound_links %}
+          <div>
+            <a href="{{ link }}">{{ text }}</a>
+          </div>
+          {% endfor %}
+        {% endif %}
       </div>
     </div>
-  </div>
+  </section>
+
+{#  <div>#}
+{#    <h2>man page</h2>#}
+{#    <div class="row">#}
+{#      <div class="col-md-9">#}
+{#        <p class="lead above-terminal">#}
+{#          {{ description }}#}
+{#        </p>#}
+{##}
+{#        {% if man_comments %}#}
+{#          <section id="man-comments hidden-sm-down" class="terminal-like">#}
+{#            <h3>Leading comments</h3>#}
+{#            <pre class="no-pad">{{ man_comments }}</pre>#}
+{#            <comment>#}
+{#              (The comments found at the beginning of the groff file "{{ raw_path }}".)#}
+{#            </comment>#}
+{#          </section>#}
+{#        {% endif %}#}
+{#        <section id="man-page" class="terminal-like">#}
+{#        <h3>{{ name }} ({{ man_id }})</h3>#}
+{#          <!-- man page content { -->#}
+{#          {{ content|safe }}#}
+{#          <!-- } end of man page content -->#}
+{#        </section>#}
+{#      </div>#}
+{##}
+{#      <div class="col-md-3 hidden-sm-down show-late">#}
+{#        <p class="above-terminal">#}
+{#          &nbsp;#}
+{#        </p>#}
+{#        <div class="terminal-like sidebar">#}
+{#          {% for label, value in details %}#}
+{#            <h5>{{ label|safe }}</h5>#}
+{#            <div class="value">{{ value }}</div>#}
+{#          {% endfor %}#}
+{#          {% if outbound_links %}#}
+{#            <h5>References</h5>#}
+{#            {% for link, text in outbound_links %}#}
+{#              <div>#}
+{#                <a href="{{ link }}">{{ text }}</a>#}
+{#              </div>#}
+{#            {% endfor %}#}
+{#          {% endif %}#}
+{#          {% if inbound_links %}#}
+{#            <h5>Referenced By</h5>#}
+{#            {% for link, text in inbound_links %}#}
+{#            <div>#}
+{#              <a href="{{ link }}">{{ text }}</a>#}
+{#            </div>#}
+{#            {% endfor %}#}
+{#          {% endif %}#}
+{#        </div>#}
+{#      </div>#}
+{#    </div>#}
+{#  </div>#}
 {% endblock %}

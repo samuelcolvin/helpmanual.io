@@ -28,12 +28,12 @@ $('#search').typeahead({
     suggestion: function(v) {
       return `<div>
   <div>
-    <span class="tag tag-default">${v.src}</span>
+    <span class="tag">${v.src}</span>
     <b>${v.name}</b>
   </div>
-  <div class="small">
+  <small>
     ${v.description}
-  </div>
+  </small>
 </div>`
     }
   }

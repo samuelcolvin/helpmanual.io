@@ -45,6 +45,7 @@ class GenSite:
     def __init__(self):
         self.debug = 'debug' in sys.argv
         self.fast = 'fast' in sys.argv
+        self.super_fast = 'super_fast' in sys.argv
         self.site_dir = Path('site')
         if self.site_dir.exists():
             shutil.rmtree(str(self.site_dir))
@@ -100,25 +101,30 @@ class GenSite:
         for data in builtin_data:
             self.generate_builtin_page(data)
 
-        if not self.fast:
+        if not self.super_fast:
             self.cross_linker = FindCrossLinks()
             with Path('data/cross_links.json').open() as f:
                 self.cross_links = json.load(f)  # type Dict
 
             print('generating man pages...')
-            for data in man_data:
+            for i, data in enumerate(man_data):
                 try:
                     self.generate_man_page(data, exec_names)
                 except Exception as e:
                     raise RuntimeError('error on {}'.format(data['uri'])) from e
+                if self.fast and i > 100:
+                    break
 
             print('generating help pages...')
-            for data in exec_data.values():
+            for i, data in enumerate(exec_data.values()):
                 if data is not None:
                     exec_data2.append(self.generate_exec_page(data, man_uris))
+                if self.fast and i > 100:
+                    break
 
-            print('generating search index...')
-            self.generate_search_index(man_data, builtin_data, exec_data2)
+            if not self.fast:
+                print('generating search index...')
+                self.generate_search_index(man_data, builtin_data, exec_data2)
         print('generating index page...')
         self.generate_index(man_data, builtin_data, exec_data2)
         print('generating extras...')
@@ -181,10 +187,21 @@ class GenSite:
             man_comments=man_comments and dedent(man_comments),
             source='man{man_id}'.format(**ctx),
             details=details,
-            exec_variant=ctx['name'] in exec_names,
             outbound_links=link_info.get('outbound', {}).items(),
             inbound_links=link_info.get('inbound', {}).items(),
         )
+        if ctx['name'] in exec_names:
+            ctx['pages'] = [
+                {
+                    'class': 'active',
+                    'text': 'Man Page',
+                    'link': '.',
+                },
+                {
+                    'text': 'Help Output',
+                    'link': '/help/{}'.format(ctx['name']),
+                }
+            ]
         self.render(ctx['uri'].lstrip('/') + '/', 'man.jinja', **ctx)
 
     def generate_builtin_page(self, ctx):
@@ -207,12 +224,24 @@ class GenSite:
     def generate_exec_page(self, ctx, man_uris):
         help_lines = ctx['help_msg'].strip('\n').split('\n')
         uri = 'help/{name}/'.format(**ctx)
+        man_variant_uri = man_uris.get(ctx['name'], None)
         ctx.update(
             page_title='{name} &bull; help'.format(**ctx),
             title='{name} help'.format(**ctx),
             description=generate_description(help_lines[0], help_lines[1:10]),
-            man_variant_uri=man_uris.get(ctx['name'], None),
             uri=uri,
+            pages=[
+                {
+                    'text': 'Man Page',
+                    'class': '' if man_variant_uri else 'disabled',
+                    'link': man_variant_uri,
+                },
+                {
+                    'class': 'active',
+                    'text': 'Help Output',
+                    'link': '#',
+                }
+            ]
         )
         self.render(uri.lstrip('/'), 'exec.jinja', **ctx)
         return ctx
