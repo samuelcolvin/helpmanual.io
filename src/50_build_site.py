@@ -157,7 +157,7 @@ class GenSite:
 
     @staticmethod
     def _get_priority(page):
-        if page == '/':
+        if page in {'/', ''}:
             p = 1
         elif page.startswith('/man1/'):
             p = 0.9

@@ -63,7 +63,7 @@ if (window.pageYOffset > head_limit) {
 window.onscroll = function() {
   if(window.pageYOffset > head_limit){
     if (!alt_head_shown) {
-      $alt_head.fadeIn(1500)
+      $alt_head.fadeIn(200)
       alt_head_shown = true
     }
   } else {
@@ -80,7 +80,7 @@ function go_to(uri){
   if (!uri.startsWith('/')) {
     return true
   }
-  $dynamic.fadeOut(200)
+  $dynamic.fadeOut(2000)
 
   $dynamic.load(uri + ' #dynamic', function( response, status, xhr ) {
     if (status == 'error') {
@@ -90,7 +90,7 @@ function go_to(uri){
       $dynamic.stop(true, false)
       history.pushState(null, '', uri)
       a_click()
-      $dynamic.fadeIn(100)
+      $dynamic.fadeIn(200)
     }
   })
   return false
