@@ -41,6 +41,26 @@ POPULAR_COMMANDS = {
 }
 
 
+def get_priority(page):
+    if page == '/':
+        p = 1
+    elif page.startswith('/man1/'):
+        p = 0.9
+    elif page.startswith('/builtin/'):
+        p = 0.8
+    elif page.startswith('/help/'):
+        p = 0.7
+    elif page.startswith('/man8/'):
+        p = 0.6
+    elif page.startswith('/man7/'):
+        p = 0.5
+    elif page.startswith(('/man2/', '/man3/')):
+        p = 0.1
+    else:
+        p = 0.3
+    return '{:0.2f}'.format(p)
+
+
 class GenSite:
     def __init__(self):
         self.debug = 'debug' in sys.argv
@@ -68,6 +88,7 @@ class GenSite:
             embedded_css=p.read_text().strip('\n'),
             debug=self.debug,
         )
+        self.env.filters['priority'] = get_priority
 
         self.html_root = Path('data/html').resolve()
         self.pages = []
@@ -250,12 +271,24 @@ class GenSite:
         return sorted(data, key=itemgetter('name'))
 
     def generate_index(self, man_data, builtin_data, exec_data):
+        info = []
+        for man_id in range(1, 10):
+            info.append((
+                len([1 for p in man_data if p['man_id'] == man_id]),
+                'man{} pages'.format(man_id),
+            ))
+        info += [
+            (len(builtin_data), 'man pages for bash built-ins.'),
+            (len(exec_data), 'help and version output from executables.')
+        ]
         self.render(
             'index.html',
             'index.jinja',
             sitemap_index=0,
             title='helpmanual.io',
             description='man pages and help text for unix commands',
+            info=info,
+            total_pages='{:0,.0f}'.format(sum(count for count, text in info)),
         )
 
     def generate_search_index(self, man_data, builtin_data, exec_data):

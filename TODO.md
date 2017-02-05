@@ -1,5 +1,18 @@
 # helpmanual
 
+## TODO
+
+* fix weird memory error eg on `man1/ul`
+* static asset renaming with hash (browser cache time is 1 year)
+* add "installed via" and package info pages
+* search improvements eg. ranking
+* remove links to self
+* fix single quotes in description, eg. `systemd-cat`
+* use NAME not PROLOG for description on posix pages 
+* add posix page as tab and change search badge
+* full build command with vagrant
+* add json ld
+
 To deploy
 
 ```
@@ -53,19 +66,6 @@ apt packages with man pages:
 ## more man pages
 
 https://www.freebsd.org/cgi/man.cgi/faq.html
-
-# TODO
-
-* fix weird memory error eg on `man1/ul`
-* static asset renaming with hash (browser cache time is 1 year)
-* add "installed via" and package info pages
-* search improvements eg. ranking
-* remove links to self
-* fix single quotes in description, eg. `systemd-cat`
-* use NAME not PROLOG for description on posix pages 
-* add posix page as tab and change search badge
-* full build command with vagrant
-* add json ld
 
 # Processing pipeline
 

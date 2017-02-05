@@ -27,7 +27,7 @@ html, body {
 }
 
 a {
-  text-decoration: none;
+  text-decoration: none !important;
 }
 
 $header-height: 400px;
@@ -234,6 +234,14 @@ $indent-terminal: 40px;
 
 section.info {
   margin: 15px 15px 20px;
+  a {
+    color: #48aaff;
+  }
+  .count {
+    display: inline-block;
+    min-width: 40px;
+    text-align: right;
+  }
 }
 
 .terminal-box {
@@ -265,7 +273,6 @@ section.info {
     font-style: normal;
   }
   a {
-    text-decoration: none !important;
     color: #48aaff;
   }
   pre {
