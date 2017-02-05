@@ -4,7 +4,7 @@ import Bloodhound from 'bloodhound-js'
 const SEARCH_URL = 'https://search.helpmanual.io/{query}'
 // const SEARCH_URL = 'http://localhost:5000/{query}'
 
-var search_source = new Bloodhound({
+let search_source = new Bloodhound({
   datumTokenizer: Bloodhound.tokenizers.whitespace,
   queryTokenizer: Bloodhound.tokenizers.whitespace,
   remote: {
@@ -14,8 +14,8 @@ var search_source = new Bloodhound({
 })
 
 const EMPTY = '<div class="no-results">No results found</div>'
-var $spinner = $('#spinner')
-var $index = $('#index-content')
+let $spinner = $('#spinner')
+let $index = $('#index-content')
 
 $('#search').typeahead({
   minLength: 2
@@ -48,4 +48,28 @@ $('#search').typeahead({
 }).on('typeahead:idle', function() {
   $index.fadeIn()
 })
-$('.navbar .container').show();
+
+$('.navbar .container').show()
+
+// affix extra header
+let $alt_head = $('#alt-head')
+let head_limit = 70
+let alt_head_shown = false
+if (window.pageYOffset > head_limit) {
+  $alt_head.show()
+  alt_head_shown = true
+}
+
+window.onscroll = function() {
+  if(window.pageYOffset > head_limit){
+    if (!alt_head_shown) {
+      $alt_head.fadeIn(200)
+      alt_head_shown = true
+    }
+  } else {
+    if (alt_head_shown) {
+      $alt_head.fadeOut(200)
+      alt_head_shown = false
+    }
+  }
+};

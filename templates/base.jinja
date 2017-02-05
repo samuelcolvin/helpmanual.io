@@ -26,7 +26,21 @@
   </head>
 
   <body>
-    <nav class="navbar navbar-fixed-top navbar-dark bg-inverse show-late">
+    <header></header>
+
+    {% macro head() -%}
+      <div class="page-description">
+        <h1>{{ page_title|safe or title|safe }}</h1>
+        <aside>
+          {{ description|truncate(length=80) }}
+        </aside>
+      </div>
+      <div class="menu">
+        <a href="#" class="active">hello</a>
+        <a href="#">goodbye</a>
+      </div>
+    {%- endmacro %}
+    <nav class="navbar">
       <div class="container" style="display: none">
         <form id="search-form">
           <input id="search" class="form-control" type="text" placeholder="Search...">
@@ -35,30 +49,25 @@
             <div class="b2"></div>
           </div>
         </form>
+        <a href="/" class="about">about</a>
       </div>
     </nav>
+    <div id="alt-head" class="head" style="display: none">
+      <div class="container">
+        {{ head() }}
+      </div>
+    </div>
 
-    <noscript id="deferred-styles">
-      <link href="{{ 'css/styles.css'|static }}" rel="stylesheet">
-    </noscript>
-    <script>
-      function load_deferred() {
-        var styles_node = document.getElementById('deferred-styles');
-        var replacement = document.createElement('div');
-        replacement.innerHTML = styles_node.textContent;
-        document.body.appendChild(replacement)
-        styles_node.parentElement.removeChild(styles_node);
-      }
-      requestAnimationFrame(function() { setTimeout(load_deferred, 0); });
-    </script>
-
-    <div class="main container">
-      {% block content %}{% endblock %}
+    <div class="terminal container">
+      <div class="head">
+        {{ head() }}
+      </div>
+      <main>
+        {% block content %}{% endblock %}
+      </main>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
     <script src="{{ 'js/typeahead.min.js'|static }}"></script>
     <script src="{{ 'js/main.js'|static }}"></script>
     <script>

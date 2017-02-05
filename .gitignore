@@ -8,4 +8,5 @@ exec_data.json
 static/libs
 static/js
 node_modules
-static/sass/libs
+static/sass-old/libs
+static/css

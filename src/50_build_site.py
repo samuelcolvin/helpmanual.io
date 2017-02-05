@@ -9,7 +9,7 @@ from operator import itemgetter
 from pathlib import Path
 from textwrap import dedent
 
-from aiohttp_devtools.tools.sass_generator import SassGenerator
+from grablib import Grab
 from jinja2 import Environment, FileSystemLoader, Markup
 from lxml import html
 
@@ -59,9 +59,12 @@ class GenSite:
             static=self._static_filter,
             to_uri=self._to_uri,
         )
-        p = Path('static/sass/_inline.scss')
+        grab = Grab('grablib.yml', debug=self.debug)
+        grab.download()
+        grab.build()
+        p = Path('static/css/inline.css')
         self.env.globals.update(
-            embedded_css=SassGenerator('static/sass', debug=self.debug).generate_css(p).strip('\n'),
+            embedded_css=p.read_text().strip('\n'),
             debug=self.debug,
         )
 
@@ -315,8 +318,6 @@ class GenSite:
         if not self.debug and not self.fast:
             args += '--optimize-minimize',
         subprocess.run(args, check=True)
-        print('compiling css...')
-        SassGenerator('static/sass', 'site/static/css', debug=self.debug).build()
         for path in Path('static/favicons').resolve().iterdir():
             if path.name == 'master.png':
                 continue

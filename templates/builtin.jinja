@@ -1,19 +1,10 @@
 {% extends 'base.jinja' %}
 
 {% block content %}
-  <div class="h2 pull-right">
-    <span class="tag tag-default show-late">builtin</span>
-  </div>
-  <h1>{{ name }}</h1>
-  <p class="lead">
-    {{ description }}
-  </p>
-  <div>
-    <section id="builtin-man-page" class="terminal-like">
-    <h3>{{ name }}</h3>
-      <!-- man page content { -->
-      {{ content|safe }}
-      <!-- } end of man page content -->
-    </section>
-  </div>
+  <section id="builtin-man-page" class="terminal-like">
+  <h3>{{ name }}</h3>
+    <!-- man page content { -->
+    {{ content|safe }}
+    <!-- } end of man page content -->
+  </section>
 {% endblock %}
