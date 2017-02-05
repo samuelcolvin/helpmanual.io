@@ -58,19 +58,21 @@
       {% endif %}
     {%- endmacro %}
 
-    <div id="alt-head" class="head" style="display: none">
-      <div class="container">
-        {{ head() }}
+    <div id="dynamic">
+      <div id="alt-head" class="head" style="display: none">
+        <div class="container">
+          {{ head() }}
+        </div>
       </div>
-    </div>
 
-    <div class="terminal container">
-      <div class="head">
-        {{ head() }}
+      <div class="terminal container">
+        <div class="head">
+          {{ head() }}
+        </div>
+        <main>
+          {% block content %}{% endblock %}
+        </main>
       </div>
-      <main>
-        {% block content %}{% endblock %}
-      </main>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>

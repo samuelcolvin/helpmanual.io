@@ -24,10 +24,16 @@ html, body {
   background-color: $background-colour;
   font-family: Lato, 'Helvetica Neue', Helvetica, Arial, 'Lucida Grande', sans-serif;
   padding-bottom: 10px;
+  overflow-y: scroll;
 }
 
 a {
   text-decoration: none !important;
+}
+
+a.disabled {
+  pointer-events: none;
+  cursor: default;
 }
 
 $header-height: 400px;

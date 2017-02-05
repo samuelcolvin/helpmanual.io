@@ -38,7 +38,7 @@ $('#search').typeahead({
     }
   }
 }).on('typeahead:select', function(ev, suggestion) {
-  window.location = suggestion.uri
+  go_to(suggestion.uri)
 }).on('typeahead:asyncrequest', function() {
   $spinner.show()
 }).on('typeahead:asynccancel typeahead:asyncreceive', function() {
@@ -63,7 +63,7 @@ if (window.pageYOffset > head_limit) {
 window.onscroll = function() {
   if(window.pageYOffset > head_limit){
     if (!alt_head_shown) {
-      $alt_head.fadeIn(200)
+      $alt_head.fadeIn(1500)
       alt_head_shown = true
     }
   } else {
@@ -72,4 +72,36 @@ window.onscroll = function() {
       alt_head_shown = false
     }
   }
-};
+}
+
+let $dynamic = $('#dynamic')
+
+function go_to(uri){
+  if (!uri.startsWith('/')) {
+    return true
+  }
+  $dynamic.fadeOut(200)
+
+  $dynamic.load(uri + ' #dynamic', function( response, status, xhr ) {
+    if (status == 'error') {
+      console.error('Error getting uri', uri, xhr)
+      window.location = uri
+    } else {
+      $dynamic.stop(true, false)
+      history.pushState(null, '', uri)
+      a_click()
+      $dynamic.fadeIn(100)
+    }
+  })
+  return false
+}
+
+function a_click() {
+  let $a = $('a')
+  $a.unbind('click')
+  $a.click(function () {
+    return go_to($(this).attr('href'))
+  })
+}
+
+$(document).ready(a_click)

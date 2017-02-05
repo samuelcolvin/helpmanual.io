@@ -2,8 +2,6 @@
 
 ## TODO
 
-* page open in javascript
-
 * fix weird memory error eg on `man1/ul`
 * add "installed via" and package info pages
 * search improvements eg. ranking

@@ -47,7 +47,7 @@ class GenSite:
         self.debug = 'debug' in sys.argv
         self.fast = 'fast' in sys.argv
         self.hashed_static_files = {}
-        self.site_dir = (Path(__file__).parent / '..' / 'site').resolve()
+        self.site_dir = Path(__file__).parent / '..' / 'site'
 
         if self.site_dir.exists():
             shutil.rmtree(str(self.site_dir))
@@ -127,9 +127,9 @@ class GenSite:
             if self.fast and i > 100:
                 break
 
-            if not self.fast:
-                print('generating search index...')
-                self.generate_search_index(man_data, builtin_data, exec_data2)
+        if not self.fast:
+            print('generating search index...')
+            self.generate_search_index(man_data, builtin_data, exec_data2)
         print('generating index page...')
         self.generate_index(man_data, builtin_data, exec_data2)
         print('generating extras...')
@@ -227,9 +227,9 @@ class GenSite:
         if ctx['name'] in exec_names:
             ctx['pages'] = [
                 {
-                    'class': 'active',
+                    'class': 'active disabled',
                     'text': 'Man Page',
-                    'link': '.',
+                    'link': '#',
                 },
                 {
                     'text': 'Help Output',
@@ -271,7 +271,7 @@ class GenSite:
                     'link': man_variant_uri,
                 },
                 {
-                    'class': 'active',
+                    'class': 'active disabled',
                     'text': 'Help Output',
                     'link': '#',
                 }
@@ -389,7 +389,7 @@ class GenSite:
 
     def generate_static(self):
         print('compiling js...')
-        args = ('./node_modules/.bin/webpack', '--colors')
+        args = 'npm', 'run', 'webpack', '--colors'
         if not self.debug and not self.fast:
             args += '--optimize-minimize',
         subprocess.run(args, check=True)
