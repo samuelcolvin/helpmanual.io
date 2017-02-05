@@ -27,11 +27,24 @@
 
   <body>
     <header></header>
+    <nav class="navbar">
+      <div class="container" style="display: none">
+        <div class="content">
+          <form id="search-form">
+            <input id="search" class="form-control" type="text" placeholder="Search...">
+            <div id="spinner">
+              <div></div><div></div>
+            </div>
+          </form>
+          <a href="/" class="about hide-small">about</a>
+        </div>
+      </div>
+    </nav>
 
     {% macro head() -%}
       <div class="page-description">
         <h1>{{ page_title|safe or title|safe }}</h1>
-        <aside>
+        <aside class="hide-small">
           {{ description|truncate(length=80) }}
         </aside>
       </div>
@@ -44,19 +57,6 @@
       {% endif %}
     {%- endmacro %}
 
-    <nav class="navbar">
-      <div class="container" style="display: none">
-        <div class="content">
-          <form id="search-form">
-            <input id="search" class="form-control" type="text" placeholder="Search...">
-            <div id="spinner">
-              <div></div><div></div>
-            </div>
-          </form>
-          <a href="/" class="about">about</a>
-        </div>
-      </div>
-    </nav>
     <div id="alt-head" class="head" style="display: none">
       <div class="container">
         {{ head() }}

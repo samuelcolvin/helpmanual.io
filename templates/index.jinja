@@ -11,15 +11,15 @@
       <a href="https://github.com/samuelcolvin/helpmanual.io">on github</a>.
     </p>
     <p>
-      The site currently contains {{ total_pages }} pages in total, made up of:
+      The site currently contains {{ total_pages }} pages, made up of:
     </p>
     <ul>
       {% for count, text in info %}
-        <li><b class="count">{{ count }}</b> {{ text }}</li>
+        <li><span class="count">{{ count }}</span> {{ text }}</li>
       {% endfor %}
     </ul>
     <p>
-      Use the search above to find the man page you're looking for.
+      Use the search above to find the man or help page you're looking for.
     </p>
   </section>
 {% endblock %}
