@@ -2,9 +2,7 @@
 
 ## TODO
 
-* static asset renaming with hash (browser cache time is 1 year)
 * page open in javascript
-* fix favicons
 
 * fix weird memory error eg on `man1/ul`
 * add "installed via" and package info pages

@@ -8,11 +8,12 @@
     <meta name="author" content="Samuel Colvin">
 
     <meta name="theme-color" content="#00897b">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ 'apple-touch-icon.png'|static }}">
+    <link rel="icon" type="image/png" href="{{ 'favicon-32x32.png'|static }}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{{ 'favicon-16x16.png'|static }}" sizes="16x16">
+    <link rel="manifest" href="{{ 'manifest.json'|static }}">
+    <link rel="mask-icon" href="{{ 'safari-pinned-tab.svg'|static }}" color="#42587f">
+
 
     {% if uri %}
     <link rel="canonical" href="{{ uri|to_uri }}">
@@ -73,8 +74,8 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="{{ 'js/typeahead.min.js'|static }}"></script>
-    <script src="{{ 'js/main.js'|static }}"></script>
+    <script src="{{ 'static/js/typeahead.min.js'|static }}"></script>
+    <script src="{{ 'static/js/main.js'|static }}"></script>
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

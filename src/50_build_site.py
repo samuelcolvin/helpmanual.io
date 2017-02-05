@@ -1,3 +1,4 @@
+import hashlib
 import json
 import re
 import shutil
@@ -45,8 +46,9 @@ class GenSite:
     def __init__(self):
         self.debug = 'debug' in sys.argv
         self.fast = 'fast' in sys.argv
-        self.super_fast = 'super_fast' in sys.argv
-        self.site_dir = Path('site')
+        self.hashed_static_files = {}
+        self.site_dir = (Path(__file__).parent / '..' / 'site').resolve()
+
         if self.site_dir.exists():
             shutil.rmtree(str(self.site_dir))
 
@@ -98,30 +100,32 @@ class GenSite:
         with Path('data/builtin_metadata.json').open() as f:
             builtin_data = json.load(f)
 
+        print('generating static files...')
+        self.generate_static()
+
         print('generating builtin pages...')
         for data in builtin_data:
             self.generate_builtin_page(data)
 
-        if not self.super_fast:
-            self.cross_linker = FindCrossLinks()
-            with Path('data/cross_links.json').open() as f:
-                self.cross_links = json.load(f)  # type Dict
+        self.cross_linker = FindCrossLinks()
+        with Path('data/cross_links.json').open() as f:
+            self.cross_links = json.load(f)  # type Dict
 
-            print('generating man pages...')
-            for i, data in enumerate(man_data):
-                try:
-                    self.generate_man_page(data, exec_names)
-                except Exception as e:
-                    raise RuntimeError('error on {}'.format(data['uri'])) from e
-                if self.fast and i > 100:
-                    break
+        print('generating man pages...')
+        for i, data in enumerate(man_data):
+            try:
+                self.generate_man_page(data, exec_names)
+            except Exception as e:
+                raise RuntimeError('error on {}'.format(data['uri'])) from e
+            if self.fast and i > 100:
+                break
 
-            print('generating help pages...')
-            for i, data in enumerate(exec_data.values()):
-                if data is not None:
-                    exec_data2.append(self.generate_exec_page(data, man_uris))
-                if self.fast and i > 100:
-                    break
+        print('generating help pages...')
+        for i, data in enumerate(exec_data.values()):
+            if data is not None:
+                exec_data2.append(self.generate_exec_page(data, man_uris))
+            if self.fast and i > 100:
+                break
 
             if not self.fast:
                 print('generating search index...')
@@ -130,13 +134,22 @@ class GenSite:
         self.generate_index(man_data, builtin_data, exec_data2)
         print('generating extras...')
         self.generate_extra()
-        print('generating static files...')
-        self.generate_static()
         print('done.')
 
-    @staticmethod
-    def _static_filter(path):
-        return '/static/{}'.format(path.strip('/'))
+    def _static_filter(self, path):
+        file_path = self.site_dir / path
+        if not file_path.exists():
+            raise FileNotFoundError('static file "{}" does not exist'.format(path))
+        hashed_url = self.hashed_static_files.get(path)
+        if hashed_url is None:
+            content = file_path.read_bytes()
+            hash = hashlib.md5(content).hexdigest()
+            name_parts = file_path.stem, '.' + hash[:15], file_path.suffix
+            new_path = file_path.parent / ''.join(name_parts)
+            new_path.write_bytes(content)
+            hashed_url = '/{}'.format(new_path.relative_to(self.site_dir))
+            self.hashed_static_files[path] = hashed_url
+        return hashed_url
 
     @staticmethod
     def _to_uri(uri):
@@ -384,9 +397,10 @@ class GenSite:
             if path.name == 'master.png':
                 continue
             new_path = self.site_dir / path.name
+            new_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(str(path.resolve()), str(new_path))
         for path in Path('static/js').resolve().iterdir():
-            new_path = self.site_dir / 'static/js' / path.name
+            new_path = self.site_dir / 'static' / 'js' / path.name
             new_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(str(path.resolve()), str(new_path))
 
