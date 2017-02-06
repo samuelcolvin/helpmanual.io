@@ -21,10 +21,12 @@ $background-colour: #f1f5f9;
 
 html, body {
   margin: 0;
+  padding: 0 0 10px;
   background-color: $background-colour;
   font-family: Lato, 'Helvetica Neue', Helvetica, Arial, 'Lucida Grande', sans-serif;
-  padding-bottom: 10px;
   overflow-y: scroll;
+  overflow-x: hidden;
+  width: 100vw;
 }
 
 a {
@@ -50,6 +52,13 @@ header {
   margin: 0 auto;
 }
 
+@media (max-width: 1156px) {
+  .container {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+}
+
 $result-color: map-get($colour-grid, "darken-1");
 nav {
   background-color: $background-colour;
@@ -62,7 +71,6 @@ nav {
   .content {
     display: flex;
     justify-content: space-between;
-    padding: 0 10px;
   }
   .about {
     color: $header-colour;
@@ -203,6 +211,9 @@ nav {
       &:hover {
         color: map-get($colour-grid, "lighten-4");
       }
+      &.disabled {
+        color: #ccc;
+      }
       &.active {
         background-image: linear-gradient(#222222,#444444);
         border-radius: 15px;
@@ -230,6 +241,7 @@ nav {
   color: white;
   border-radius: 5px;
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.2);
+  min-height: 400px;
   .head {
     background-image: linear-gradient(#555, #444);
     border: 1px solid #444;

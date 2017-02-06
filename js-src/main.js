@@ -16,8 +16,9 @@ let search_source = new Bloodhound({
 const EMPTY = '<div class="no-results">No results found</div>'
 let $spinner = $('#spinner')
 let $index = $('#index-content')
+let $search = $('#search')
 
-$('#search').typeahead({
+$search.typeahead({
   minLength: 2
 }, {
   source: search_source,
@@ -38,7 +39,7 @@ $('#search').typeahead({
     }
   }
 }).on('typeahead:select', function(ev, suggestion) {
-  go_to(suggestion.uri)
+  go_to(suggestion.uri, true)
 }).on('typeahead:asyncrequest', function() {
   $spinner.show()
 }).on('typeahead:asynccancel typeahead:asyncreceive', function() {
@@ -52,13 +53,17 @@ $('#search').typeahead({
 $('.navbar .container').show()
 
 // affix extra header
-let $alt_head = $('#alt-head')
+let $alt_head
 let head_limit = 70
 let alt_head_shown = false
-if (window.pageYOffset > head_limit) {
-  $alt_head.show()
-  alt_head_shown = true
+function prepare_scroll() {
+  $alt_head = $('#alt-head')
+  if (window.pageYOffset > head_limit) {
+    $alt_head.show()
+    alt_head_shown = true
+  }
 }
+prepare_scroll()
 
 window.onscroll = function() {
   if(window.pageYOffset > head_limit){
@@ -76,7 +81,7 @@ window.onscroll = function() {
 
 let $dynamic = $('#dynamic')
 
-function go_to(uri){
+function go_to(uri, push){
   if (!uri.startsWith('/')) {
     return true
   }
@@ -88,9 +93,15 @@ function go_to(uri){
       window.location = uri
     } else {
       $dynamic.stop(true, false)
-      history.pushState(null, '', uri)
-      a_click()
+      if (push === true){
+        history.pushState(uri, '', uri)
+      }
       $dynamic.fadeIn(200)
+      // reset stuff after "going to" the new page
+      a_click()
+      prepare_scroll()
+      $search.typeahead('val', '')
+      document.title = $dynamic.find('h1').first().text()
     }
   })
   return false
@@ -100,8 +111,12 @@ function a_click() {
   let $a = $('a')
   $a.unbind('click')
   $a.click(function () {
-    return go_to($(this).attr('href'))
+    return go_to($(this).attr('href'), true)
   })
 }
 
 $(document).ready(a_click)
+
+$(window).on('popstate', function() {
+  go_to(window.location.pathname, false)
+})
