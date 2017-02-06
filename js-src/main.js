@@ -91,18 +91,18 @@ function go_to(uri, push){
     if (status == 'error') {
       console.error('Error getting uri', uri, xhr)
       window.location = uri
-    } else {
-      $dynamic.stop(true, false)
-      if (push === true){
-        history.pushState(uri, '', uri)
-      }
-      $dynamic.fadeIn(200)
-      // reset stuff after "going to" the new page
-      a_click()
-      prepare_scroll()
-      $search.typeahead('val', '')
-      document.title = $dynamic.find('h1').first().text()
+      return
     }
+    $dynamic.stop(true, false)
+    if (push === true){
+      history.pushState(uri, '', uri)
+    }
+    $dynamic.fadeIn(200)
+    // reset stuff after "going to" the new page
+    a_click()
+    prepare_scroll()
+    $search.typeahead('val', '')
+    document.title = $dynamic.find('h1').first().text()
   })
   return false
 }
