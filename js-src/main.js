@@ -38,7 +38,8 @@ $search.typeahead({
 }
 ).on('typeahead:select', (ev, suggestion) => go_to(suggestion.uri, true)
 ).on('typeahead:asyncrequest', () => $spinner.show()
-).on('typeahead:asynccancel typeahead:asyncreceive', () => $spinner.hide())
+).on('typeahead:asynccancel typeahead:asyncreceive', () => $spinner.hide()
+)
 
 $('.navbar .container').show()
 
@@ -84,9 +85,7 @@ function go_to(uri, push){
       return
     }
     $dynamic.stop(true, false)
-    if (push === true){
-      history.pushState(uri, '', uri)
-    }
+    push && history.pushState(null, '', uri)
     $dynamic.fadeIn(200)
     // reset stuff after "going to" the new page
     a_click()
@@ -110,6 +109,49 @@ function a_click() {
   })
 }
 
-$(document).ready(a_click)
-
 $(window).on('popstate', () => go_to(window.location.pathname, false))
+
+function draw () {
+  let c = $('canvas')[0].getContext('2d')
+  let s = 25
+  let w = window.innerWidth
+  if (w < 1000) {
+    // don't render on mobile
+    return
+  }
+  c.canvas.width  = w
+  let h = 370
+  c.canvas.height = h
+  let light_random = 3
+
+  function hex (x_, y_) {
+    // 42587f == hsl(218, 32%, 38%)
+    let light = 38 + Math.random() * light_random - light_random / 2
+    c.fillStyle = 'hsl(218, 32%, ' + light + '%)'
+    c.beginPath()
+    c.moveTo(y_, x_)
+    c.lineTo(y_ + s, x_ + s * 0.5)
+    c.lineTo(y_ + s, x_ + s * 1.5)
+    c.lineTo(y_, x_ + s * 2)
+    c.lineTo(y_ - s, x_ + s * 1.5)
+    c.lineTo(y_ - s, x_ + s * 0.5)
+    c.fill()
+    c.closePath()
+  }
+
+  let x_step = s * 1.5
+  for (let i = 0; i < h / x_step; i++) {
+    let x = i * x_step
+    let y_start = i % 2 == 0 ? 0 : s
+    for (let y = y_start; y < w + s; y += s * 2) {
+      hex(x, y)
+    }
+  }
+}
+
+$(document).ready(() => {
+  a_click()
+  draw()
+})
+
+$(window).resize(draw)

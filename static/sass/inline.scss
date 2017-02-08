@@ -40,6 +40,9 @@ header {
   background-color: $header-colour;
   height: $header-height;
   width: 100%;
+  canvas {
+    margin-top: 30px;
+  }
 }
 
 .container {
@@ -171,6 +174,7 @@ nav {
 }
 
 #alt-head {
+  z-index: 10;
   position: fixed;
   top: 50px;
   width: 100%;
@@ -231,6 +235,8 @@ nav {
 }
 
 .terminal {
+  // so terminal appears on top of canvas
+  position: relative;
   padding: 0;
   margin-top: 80px - $header-height;
   background-color: #333333;

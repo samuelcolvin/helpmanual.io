@@ -294,7 +294,7 @@ class GenSite:
             ))
         info += [
             (len(builtin_data), 'man pages for bash builtins.'),
-            (len(exec_data), 'help and version output from executables.')
+            (len(exec_data), 'help and version pages from executables.')
         ]
         self.render(
             'index.html',
