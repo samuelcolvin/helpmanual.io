@@ -1,6 +1,9 @@
 import $ from 'jquery'
 import Bloodhound from 'bloodhound-js'
 
+ga('create', 'UA-62733018-3', 'auto')
+ga('send', 'pageview')
+
 const SEARCH_URL = 'https://search.helpmanual.io/{query}'
 // const SEARCH_URL = 'http://localhost:5000/{query}'
 
@@ -36,7 +39,11 @@ $search.typeahead({
 </div>`
   }
 }
-).on('typeahead:select', (ev, suggestion) => go_to(suggestion.uri, true)
+).on('typeahead:select', (ev, suggestion) => go_to(suggestion.uri, true, {
+  eventCategory: 'Search',
+  eventAction: 'select',
+  eventLabel: suggestion.uri
+})
 ).on('typeahead:asyncrequest', () => $spinner.show()
 ).on('typeahead:asynccancel typeahead:asyncreceive', () => $spinner.hide()
 )
@@ -72,7 +79,7 @@ window.onscroll = () => {
 
 let $dynamic = $('#dynamic')
 
-function go_to(uri, push){
+function go_to(uri, push, event){
   if (!uri.startsWith('/')) {
     return true
   }
@@ -86,6 +93,11 @@ function go_to(uri, push){
     }
     $dynamic.stop(true, false)
     push && history.pushState(null, '', uri)
+
+    ga('set', 'page', uri)
+    ga('send', 'pageview')
+    event !== undefined && ga('send', 'event', event)
+
     $dynamic.fadeIn(200)
     // reset stuff after "going to" the new page
     a_click()

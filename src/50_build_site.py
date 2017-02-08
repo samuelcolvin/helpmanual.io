@@ -269,7 +269,7 @@ class GenSite:
                 {
                     'text': 'Man Page',
                     'class': '' if man_variant_uri else 'no-page',
-                    'title': 'Page not available',
+                    'title': '' if man_variant_uri else 'Page not available',
                     'link': self._to_uri(man_variant_uri),
                 },
                 {

@@ -1,6 +1,7 @@
 download_root: static
 download:
   'GITHUB/twitter/typeahead.js/v0.11.1/dist/typeahead.jquery.min.js': 'js/typeahead.min.js'
+  'https://www.google-analytics.com/analytics.js': 'js/analytics.js'
 
 build_root: static
 build:
