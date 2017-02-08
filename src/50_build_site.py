@@ -86,7 +86,7 @@ class GenSite:
             'man_id': 1,
             'name': 'blerp',
             'raw_path': 'xkcd',
-            'uri': 'man1/blerp',
+            'uri': '/man1/blerp',
         })
         man_data.sort(key=lambda v: (v['man_id'], v['name']))
 
@@ -121,7 +121,8 @@ class GenSite:
                 break
 
         print('generating help pages...')
-        for i, data in enumerate(exec_data.values()):
+
+        for i, data in enumerate(sorted(exec_data.values(), key=lambda v: v['name'] if v else 'x')):
             if data is not None:
                 exec_data2.append(self.generate_exec_page(data, man_uris))
             if self.fast and i > 100:
@@ -153,7 +154,7 @@ class GenSite:
 
     @staticmethod
     def _to_uri(uri):
-        return '/' + uri.strip('/')
+        return uri and re.sub('/{2,}', '/', '/{}/'.format(uri))
 
     @staticmethod
     def _get_priority(page):
@@ -233,7 +234,7 @@ class GenSite:
                 },
                 {
                     'text': 'Help Output',
-                    'link': '/help/{}'.format(ctx['name']),
+                    'link': self._to_uri('help/{name}'.format(**ctx)),
                 }
             ]
         self.render(ctx['uri'].lstrip('/') + '/', 'man.jinja', **ctx)
@@ -267,8 +268,9 @@ class GenSite:
             pages=[
                 {
                     'text': 'Man Page',
-                    'class': '' if man_variant_uri else 'disabled',
-                    'link': man_variant_uri,
+                    'class': '' if man_variant_uri else 'no-page',
+                    'title': 'Page not available',
+                    'link': self._to_uri(man_variant_uri),
                 },
                 {
                     'class': 'active disabled',
@@ -317,7 +319,7 @@ class GenSite:
                     keywords.append(d[f])
             search_data.append(OrderedDict([
                 ('name', d['name']),
-                ('uri', d['uri']),
+                ('uri', self._to_uri(d['uri'])),
                 ('src', 'man{man_id}'.format(**d)),
                 ('description', self.short_description(d['description'])),
                 ('keywords', ' '.join(keywords)),
@@ -329,7 +331,7 @@ class GenSite:
             body = doc.text_content().replace('\n', ' ')
             search_data.append(OrderedDict([
                 ('name', d['name']),
-                ('uri', d['uri']),
+                ('uri', self._to_uri(d['uri'])),
                 ('src', 'builtin'),
                 ('description', d['description']),
                 ('keywords', ''),
@@ -341,7 +343,7 @@ class GenSite:
             body = re.sub('  +', ' ', body)
             search_data.append(OrderedDict([
                 ('name', d['name']),
-                ('uri', '/' + d['uri']),
+                ('uri', self._to_uri(d['uri'])),
                 ('src', 'help'),
                 ('description', self.short_description(d['description'])),
                 ('keywords', '{help_arg} {version_arg}'.format(**d)),

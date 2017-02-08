@@ -15,7 +15,6 @@ let search_source = new Bloodhound({
 
 const EMPTY = '<div class="no-results">No results found</div>'
 let $spinner = $('#spinner')
-let $index = $('#index-content')
 let $search = $('#search')
 
 $search.typeahead({
@@ -26,8 +25,7 @@ $search.typeahead({
   limit: 20,
   templates: {
     empty: EMPTY,
-    suggestion: function(v) {
-      return `<div>
+    suggestion: (v) => `<div>
   <div>
     <span class="tag">${v.src}</span>
     <b>${v.name}</b>
@@ -36,19 +34,11 @@ $search.typeahead({
     ${v.description}
   </small>
 </div>`
-    }
   }
-}).on('typeahead:select', function(ev, suggestion) {
-  go_to(suggestion.uri, true)
-}).on('typeahead:asyncrequest', function() {
-  $spinner.show()
-}).on('typeahead:asynccancel typeahead:asyncreceive', function() {
-  $spinner.hide()
-}).on('typeahead:active', function() {
-  $index.fadeOut()
-}).on('typeahead:idle', function() {
-  $index.fadeIn()
-})
+}
+).on('typeahead:select', (ev, suggestion) => go_to(suggestion.uri, true)
+).on('typeahead:asyncrequest', () => $spinner.show()
+).on('typeahead:asynccancel typeahead:asyncreceive', () => $spinner.hide())
 
 $('.navbar .container').show()
 
@@ -65,7 +55,7 @@ function prepare_scroll() {
 }
 prepare_scroll()
 
-window.onscroll = function() {
+window.onscroll = () => {
   if(window.pageYOffset > head_limit){
     if (!alt_head_shown) {
       $alt_head.fadeIn(200)
@@ -87,7 +77,7 @@ function go_to(uri, push){
   }
   $dynamic.fadeOut(2000)
 
-  $dynamic.load(uri + ' #dynamic', function( response, status, xhr ) {
+  $dynamic.load(uri + ' #dynamic', (response, status, xhr) => {
     if (status == 'error') {
       console.error('Error getting uri', uri, xhr)
       window.location = uri
@@ -111,12 +101,15 @@ function a_click() {
   let $a = $('a')
   $a.unbind('click')
   $a.click(function () {
-    return go_to($(this).attr('href'), true)
+    let $this = $(this)
+    if ($this.hasClass('no-page')) {
+      return false
+    } else {
+      return go_to($this.attr('href'), true)
+    }
   })
 }
 
 $(document).ready(a_click)
 
-$(window).on('popstate', function() {
-  go_to(window.location.pathname, false)
-})
+$(window).on('popstate', () => go_to(window.location.pathname, false))

@@ -33,11 +33,6 @@ a {
   text-decoration: none !important;
 }
 
-a.disabled {
-  pointer-events: none;
-  cursor: default;
-}
-
 $header-height: 400px;
 $header-colour: #42587f;
 
@@ -201,32 +196,33 @@ nav {
   aside {
     color: #ccc;
   }
-  .menu {
-    padding: 2px 14px;
-    a {
-      padding: 6px 14px;
-      margin: 0 4px;
-      display: inline-block;
-      color: map-get($colour-grid, "lighten-2");
-      &:hover {
-        color: map-get($colour-grid, "lighten-4");
-      }
-      &.disabled {
-        color: #ccc;
-      }
-      &.active {
-        background-image: linear-gradient(#222222,#444444);
-        border-radius: 15px;
-        box-shadow: 0 1px 0 rgba(255,255,255,0.2), inset 0 1px 2px rgba(0,0,0,0.2);
-        color: map-get($colour-grid, "lighten-4");
-      }
+}
+.menu {
+  padding: 2px 14px;
+  a {
+    padding: 6px 14px;
+    margin: 0 4px;
+    display: inline-block;
+    color: map-get($colour-grid, "lighten-2");
+    &:hover {
+      color: map-get($colour-grid, "lighten-4");
+    }
+    &.no-page {
+      cursor: default;
+      color: #aaa;
+    }
+    &.active {
+      background-image: linear-gradient(#222222,#444444);
+      border-radius: 15px;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.2), inset 0 1px 2px rgba(0,0,0,0.2);
+      color: map-get($colour-grid, "lighten-4");
     }
   }
 }
 
 
 @media (max-width: 768px) {
-  .head .menu {
+  .menu {
     padding: 2px 4px;
     a {
       padding: 6px 8px;
@@ -359,4 +355,9 @@ $indent-terminal: 40px;
 
 .white-space {
   white-space: pre-wrap;
+}
+
+a.disabled {
+  pointer-events: none;
+  cursor: default;
 }
