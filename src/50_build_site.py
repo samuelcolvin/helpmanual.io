@@ -15,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader, Markup
 from lxml import html
 
 from utils import generate_description
-from cross_links import FindCrossLinks
+from cross_links import FindCrossLinks, fix_external_links
 
 MAN_SECTIONS = {
     1: 'User Commands',
@@ -204,6 +204,7 @@ class GenSite:
             content = content[content.index('<h2>'):]
         content = self.cross_linker.replace_cross_links(ctx, content)
         content = re.sub('(</?)h2>', r'\1h4>', content)
+        content = fix_external_links(content)
 
         details = [(label, value) for label, value in [
             ('Man Section', Markup('{} &bull; {}'.format(ctx['man_id'], MAN_SECTIONS[ctx['man_id']]))),

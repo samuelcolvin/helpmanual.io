@@ -173,3 +173,54 @@ class FindCrossLinks:
     @staticmethod
     def remove_link(uri, content):
         return re.sub('<a href="{}">(.+?)</a>'.format(re.escape(uri)), r'\1', content)
+
+
+def replace_not_http(m):
+    link, name = m.groups()
+    if link.startswith(('/', 'https://', 'http://')):
+        if link.startswith('/') and not link.endswith('/'):
+            link += '/'
+        return '<a href="{}">{}</a>'.format(link, name)
+    else:
+        return name
+
+
+CHANGE_EXTERNAL_LINKS = [
+    (re.compile('<a href="git://github\.com/(.*?)\.git(.*?)">(.+?)</a>'),
+     r'<a href="https://github.com/\1\2">\3</a>'),
+    (re.compile('<a href="git://git.kernel.org/(.*?)/git\.git">(.+?)</a>'),
+     r'<a href="http://git.kernel.org/\1">\2</a>'),
+
+    # this is the same as the next line but more verbose, useful when checking what changes to make
+    (re.compile('<a href="(.*?)">(.+?)</a>'), replace_not_http),
+    # (re.compile('<a href="[^/](?<!http).*?">(.+?)</a>'), r'\1'),
+    (re.compile('<a href="https?://(?:pastebin|localhost|example).*?">(.+?)</a>'), r'\1'),
+    (re.compile('<a href="(http.*?)">https?://(.+?)</a>'), r'<a href="\1">\2</a>'),
+]
+
+
+def fix_external_links(content):
+    for regex, repl in CHANGE_EXTERNAL_LINKS:
+        content = regex.sub(repl, content)
+    return content
+
+
+if __name__ == '__main__':
+    """
+    Check external link fixing.
+    """
+    with Path('data/man_metadata.json').open() as f:
+        man_data = json.load(f)
+
+    html_root = Path('data/html').resolve()
+    print('{} pages to go through'.format(len(man_data)))
+    REMAINING_LINKS = re.compile('<a href="[^/].*?">.*?</a>')
+    for data in man_data:
+        html_path = html_root / 'man' / '{raw_path}.html'.format(**data)
+        html_path = html_path.resolve()
+        content = html_path.read_text()
+        content = fix_external_links(content)
+        links = REMAINING_LINKS.findall(content)
+        if links:
+            print('{}\n    {}'.format(str(html_path)[-30:], '\n    '.join(links)))
+            print('')

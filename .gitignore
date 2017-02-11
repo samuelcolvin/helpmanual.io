@@ -1,5 +1,6 @@
 .idea/
 env/
+env27
 site/
 *.swp
 *.py[cod]
@@ -8,3 +9,4 @@ static/js/
 node_modules/
 static/css/
 scratch/
+site-deployed/
