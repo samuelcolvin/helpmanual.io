@@ -212,8 +212,8 @@ class GenSite:
             man_comments=man_comments and dedent(man_comments),
             source='man{man_id}'.format(**ctx),
             details=details,
-            outbound_links=link_info.get('outbound', {}).items(),
-            inbound_links=link_info.get('inbound', {}).items(),
+            outbound_links=sorted(link_info.get('outbound', {}).items()),
+            inbound_links=sorted(link_info.get('inbound', {}).items()),
         )
         if ctx['name'] in exec_names:
             ctx['pages'] = [
@@ -378,6 +378,7 @@ class GenSite:
         page_info = []
         page_set = set()
         unchanged = 0
+        changed = 0
         for page in self.pages:
             page = page or '/'
             if page in page_set:
@@ -387,23 +388,25 @@ class GenSite:
             if not file_path.exists():
                 continue
             content = file_path.read_text()
-            dynamic_content = content[content.index('<div id="dynamic">'):]
+
+            dynamic_content = re.search('<div id="dynamic">.*</div><!-- dynamic -->', content, re.S).group()
             dynamic_hash = hashlib.md5(dynamic_content.encode()).hexdigest()
+
             old_data = old_pages.get(page, None)
             if old_data and old_data['hash'] == dynamic_hash:
                 unchanged += 1
                 date = old_data['date']
             else:
+                changed += 1
                 date = self.now
             page_info.append({
                 'page': page,
                 'hash': dynamic_hash,
                 'date': date,
             })
-        p = len(self.pages)
-        change_percentage = (p - unchanged) / p * 100
-        print('unchanged pages {} vs. {}, changed proportion {:0.2f}%'.format(unchanged, p - unchanged,
-                                                                              change_percentage))
+        change_percentage = changed / (changed + unchanged) * 100
+        print('unchanged pages {} vs. {} changed, changed proportion {:0.2f}%'.format(unchanged, changed,
+                                                                                      change_percentage))
         page_info.sort(key=lambda p: (p['date'], p['page']), reverse=True)
         self.render('pages.json', 'pages.json.jinja', pages=page_info)
         return {p['page']: p['date'] for p in page_info}
