@@ -6,7 +6,7 @@ from html import escape, unescape
 import click
 
 c = re.compile
-HTTP_START = c('https?://')
+HTTP_START = c('^https?://.+$')
 STRIP = '().,\'"\\'
 
 
@@ -14,24 +14,27 @@ def replace_non_http(m):
     link, name = m.groups()
     if link.startswith('/'):
         return '<a href="{}/">{}</a>'.format(link.rstrip('/'), name)
-    if HTTP_START.match(link):
-        return '<a href="{}" target="_blank">{}</a>'.format(link.strip(STRIP), name.strip(STRIP))
+    if HTTP_START.match(link) and link.strip(STRIP) not in {'http://', 'https://'}:
+        return '<a href="{}" target="_blank">{}</a>'.format(link.strip(STRIP), name.strip(STRIP).strip('/'))
     else:
         return name
 
 
 INVALID_URLS = (
-    'pastebin',
-    'localhost',
-    'example\.',
-    'www\.example',
-    'site\.com',
-    'www\.site\.com',
-    'host\.',
-    'foo\.com',
-    'foo\.bar',
-    'bar\.com',
-    'api\.github\.com',
+    r'pastebin',
+    r'localhost',
+    r'example\.',
+    r'www\.example',
+    r'site\.com',
+    r'www\.site\.com',
+    r'host\.',
+    r'host/',
+    r'HOST',
+    r'\[USER@\]HOST',
+    r'foo\.com',
+    r'foo\.bar',
+    r'bar\.com',
+    r'api\.github\.com',
 )
 
 
@@ -50,13 +53,19 @@ CHANGE_EXTERNAL_LINKS = [
     (c('<a href="(?:git|ssh|rsync)://(.+?)">(.+?)</a>'), r'<a href="http://\1">\2</a>'),
 
     # remove links to domains which generally dont work
-    (c('<a href="https?://(?:{}).*?">(.+?)</a>'.format('|'.join(INVALID_URLS))), r'\1'),
+    (c(r'<a href="https?://(?:{}).*?">(.+?)</a>'.format('|'.join(INVALID_URLS))), r'\1'),
+
+    # empty links
+    (c('<a href="https?://">(.+?)</a>'), r'\1'),
+
+    # include number in internal links link name
+    (c('(<a href="/.+?">)(.+?)(</a>(?:</b>)?)(\(\d\))'), r'\1\2\4\3'),
 
     # remove non http(s) links and add target _blank tp external links
     (c('<a href="(.*?)">(.+?)</a>'), replace_non_http),
 
     # remove the http(s):// from the link name
-    (c('<a href="(http.*?)">https?://(.+?)</a>'), r'<a href="\1">\2</a>'),
+    (c('<a href="(http.+?)>https?://(.+?)</a>'), r'<a href="\1>\2</a>'),
 ]
 
 

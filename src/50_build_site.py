@@ -10,6 +10,7 @@ from operator import itemgetter
 from pathlib import Path
 from textwrap import dedent
 
+import requests
 from grablib import Grab
 from jinja2 import Environment, FileSystemLoader, Markup
 from lxml import html
@@ -62,7 +63,6 @@ class GenSite:
         self.env.filters.update(
             static=self._static_filter,
             to_uri=self._to_uri,
-            priority=self._get_priority
         )
         grab = Grab('grablib.yml', debug=self.debug)
         grab.download()
@@ -132,8 +132,16 @@ class GenSite:
         if not self.fast:
             print('generating search index...')
             self.generate_search_index(man_data, builtin_data, exec_data2)
+
         print('generating index page...')
         self.generate_index(man_data, builtin_data, exec_data2)
+
+        print('generating pages.json...')
+        page_dates = self.generate_page_json()
+
+        print('generating sitemap...')
+        self.render('sitemap.xml', 'sitemap.xml.jinja', pages=self.sitemap_pages(page_dates))
+
         print('generating extras...')
         self.generate_extra()
         print('done.')
@@ -156,26 +164,6 @@ class GenSite:
     @staticmethod
     def _to_uri(uri):
         return uri and re.sub('/{2,}', '/', '/{}/'.format(uri))
-
-    @staticmethod
-    def _get_priority(page):
-        if page in {'/', ''}:
-            p = 1
-        elif page.startswith('/man1/'):
-            p = 0.9
-        elif page.startswith('/builtin/'):
-            p = 0.8
-        elif page.startswith('/help/'):
-            p = 0.7
-        elif page.startswith('/man8/'):
-            p = 0.6
-        elif page.startswith('/man7/'):
-            p = 0.5
-        elif page.startswith(('/man2/', '/man3/')):
-            p = 0.1
-        else:
-            p = 0.3
-        return '{:0.2f}'.format(p)
 
     def render(self, rel_path: str, template: str, sitemap_index: int=None, **context):
         template = self.env.get_template(template)
@@ -378,6 +366,48 @@ class GenSite:
         if subset:
             save_set()
 
+    def generate_page_json(self):
+        old_pages = {}
+        url = 'https://helpmanual.io/pages.json'
+        r = requests.get(url)
+        if r.status_code == 200:
+            old_pages = r.json()
+            print('found old pages.json with {} items'.format(len(old_pages)))
+        else:
+            print('{} status code {} != 200'.format(url, r.status_code))
+        page_info = []
+        page_set = set()
+        unchanged = 0
+        for page in self.pages:
+            page = page or '/'
+            if page in page_set:
+                continue
+            page_set.add(page)
+            file_path = self.site_dir / page.strip('/') / 'index.html'
+            if not file_path.exists():
+                continue
+            content = file_path.read_text()
+            dynamic_content = content[content.index('<div id="dynamic">'):]
+            dynamic_hash = hashlib.md5(dynamic_content.encode()).hexdigest()
+            old_data = old_pages.get(page, None)
+            if old_data and old_data['hash'] == dynamic_hash:
+                unchanged += 1
+                date = old_data['date']
+            else:
+                date = self.now
+            page_info.append({
+                'page': page,
+                'hash': dynamic_hash,
+                'date': date,
+            })
+        p = len(self.pages)
+        change_percentage = (p - unchanged) / p * 100
+        print('unchanged pages {} vs. {}, changed proportion {:0.2f}%'.format(unchanged, p - unchanged,
+                                                                              change_percentage))
+        page_info.sort(key=lambda p: (p['date'], p['page']), reverse=True)
+        self.render('pages.json', 'pages.json.jinja', pages=page_info)
+        return {p['page']: p['date'] for p in page_info}
+
     @staticmethod
     def short_description(description):
         if ' - ' in description[:30]:
@@ -386,8 +416,38 @@ class GenSite:
             description = description[description.index('-') + 1:]
         return description.lstrip(' -')
 
+    def sitemap_pages(self, page_dates):
+        results = []
+        for page in self.pages:
+            if page == '/pages.json':
+                continue
+            page = page or '/'
+            if page == '/':
+                p = 1
+            elif page.startswith('/man1/'):
+                p = 0.9
+            elif page.startswith('/builtin/'):
+                p = 0.8
+            elif page.startswith('/help/'):
+                p = 0.7
+            elif page.startswith('/man8/'):
+                p = 0.6
+            elif page.startswith('/man7/'):
+                p = 0.5
+            elif page.startswith(('/man2/', '/man3/')):
+                p = 0.1
+            else:
+                p = 0.3
+
+            results.append({
+                'uri': page,
+                'lastmod': page_dates[page],
+                'priority': '{:0.2f}'.format(p),
+            })
+        results.sort(key=lambda p: (p['priority'], p['lastmod']), reverse=True)
+        return results
+
     def generate_extra(self):
-        self.render('sitemap.xml', 'sitemap.xml.jinja', pages=self.pages, now=self.now)
         self.render('robots.txt', 'robots.txt.jinja')
         self.render('humans.txt', 'humans.txt.jinja', now=self.now)
         self.render('404.html', 'stub.jinja', title='404', description='Page not found.')

@@ -1,0 +1,5 @@
+{
+  {% for page in pages %}
+  "{{ page.page }}": {"date": "{{ page.date }}", "hash": "{{ page.hash }}"}{{ '' if loop.last else ',' }}
+  {% endfor %}
+}
