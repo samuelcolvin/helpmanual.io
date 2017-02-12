@@ -15,7 +15,8 @@ from jinja2 import Environment, FileSystemLoader, Markup
 from lxml import html
 
 from utils import generate_description
-from cross_links import FindCrossLinks, fix_external_links
+from cross_links import FindCrossLinks
+from external_links import man_fix_external_links, help_fix_external_links
 
 MAN_SECTIONS = {
     1: 'User Commands',
@@ -204,7 +205,7 @@ class GenSite:
             content = content[content.index('<h2>'):]
         content = self.cross_linker.replace_cross_links(ctx, content)
         content = re.sub('(</?)h2>', r'\1h4>', content)
-        content = fix_external_links(content)
+        content = man_fix_external_links(content)
 
         details = [(label, value) for label, value in [
             ('Man Section', Markup('{} &bull; {}'.format(ctx['man_id'], MAN_SECTIONS[ctx['man_id']]))),
@@ -262,6 +263,7 @@ class GenSite:
         uri = 'help/{name}/'.format(**ctx)
         man_variant_uri = man_uris.get(ctx['name'], None)
         ctx.update(
+            help_msg=help_fix_external_links(ctx['help_msg']),
             page_title='{name} &bull; help'.format(**ctx),
             title='{name} help'.format(**ctx),
             description=generate_description(help_lines[0], help_lines[1:10]),

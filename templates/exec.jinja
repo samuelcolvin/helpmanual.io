@@ -21,6 +21,6 @@
   <section id="help-content" class="terminal-like terminal-box">
     <h3>{{ name }} {{ help_arg }} (return code: {{ help_returncode }})</h3>
 
-    <div class="white-space">{{ help_msg }}</div>
+    <div class="white-space">{{ help_msg|safe }}</div>
   </section>
 {% endblock %}
