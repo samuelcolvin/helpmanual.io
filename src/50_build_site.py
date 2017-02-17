@@ -377,8 +377,8 @@ class GenSite:
             print('{} status code {} != 200'.format(url, r.status_code))
         page_info = []
         page_set = set()
-        unchanged = 0
-        changed = 0
+        unchanged = []
+        changed = []
         for page in self.pages:
             page = page or '/'
             if page in page_set:
@@ -394,19 +394,23 @@ class GenSite:
 
             old_data = old_pages.get(page, None)
             if old_data and old_data['hash'] == dynamic_hash:
-                unchanged += 1
+                unchanged.append(page)
                 date = old_data['date']
             else:
-                changed += 1
+                changed.append(page)
                 date = self.now
             page_info.append({
                 'page': page,
                 'hash': dynamic_hash,
                 'date': date,
             })
-        change_percentage = changed / (changed + unchanged) * 100
-        print('unchanged pages {} vs. {} changed, changed proportion {:0.2f}%'.format(unchanged, changed,
+        change_percentage = len(changed) / (len(changed) + len(unchanged)) * 100
+        print('unchanged pages {} vs. {} changed, changed proportion {:0.2f}%'.format(len(unchanged), len(changed),
                                                                                       change_percentage))
+        if len(changed) < 50:
+            print('changed:\n  ' + '\n  '.join(changed))
+        if len(unchanged) < 50:
+            print('unchanged:\n  ' + '\n  '.join(unchanged))
         page_info.sort(key=lambda p: (p['date'], p['page']), reverse=True)
         self.render('pages.json', 'pages.json.jinja', pages=page_info)
         return {p['page']: p['date'] for p in page_info}

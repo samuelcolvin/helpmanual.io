@@ -50,6 +50,11 @@ apt packages with man pages:
 
 ## custom commands
 
+* emacs
+* wine
+* mongodb
+* casandra etc.
+* etcd
 * git
 * docker
 * sublime
