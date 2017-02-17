@@ -48,6 +48,9 @@ $search.typeahead({
 ).on('typeahead:asynccancel typeahead:asyncreceive', () => $spinner.hide()
 )
 
+// very useful during development:
+// $(document).on('typeahead:beforeclose', (event) => event.preventDefault())
+
 $('.navbar .container').show()
 
 // affix extra header
