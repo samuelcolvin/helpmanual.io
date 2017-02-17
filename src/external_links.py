@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from html import escape, unescape
 
+#!/usr/bin/env python3.6
 import click
 
 c = re.compile

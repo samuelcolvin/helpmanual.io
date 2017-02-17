@@ -33,7 +33,7 @@ To generate ansi html
 apt packages with man pages:
 
 * http://man7.org/linux/man-pages/index.html
-* http://popcon.debian.org/
+* http://popcon.ubuntu.com/
 * manpages-posix-dev
 * freebsd-manpages
 * avh-libc

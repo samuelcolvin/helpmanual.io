@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.6
 import gzip
 from pathlib import Path
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.6
 import json
 import subprocess
 from pathlib import Path
