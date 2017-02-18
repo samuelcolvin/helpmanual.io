@@ -3,7 +3,7 @@ import json
 import subprocess
 from pathlib import Path
 
-DATA_DIR = (Path(__file__).parent / '../data-new').resolve()
+DATA_DIR = (Path(__file__).parent / '../data').resolve()
 
 
 def man_to_txt(p: Path):

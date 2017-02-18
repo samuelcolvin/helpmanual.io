@@ -14,6 +14,8 @@ from subprocess import run, PIPE
 
 import click
 
+from utils import DATA_DIR
+
 THREADS = 7
 MAX_COMMANDS = None
 
@@ -28,7 +30,7 @@ class ExecHelp:
             v = self.run_bash('compgen -A ' + arg)
             self.commands -= {c for c in v.split('\n') if c}
         print('found {} commands'.format(len(self.commands)))
-        self.data_path = Path('data/exec_data.json')
+        self.data_path = DATA_DIR / 'exec_data.json'
         self.data = {}
         if self.data_path.exists():
             with self.data_path.open() as f:
