@@ -3,6 +3,8 @@ import json
 import subprocess
 from pathlib import Path
 
+DATA_DIR = (Path(__file__).parent / '../data-new').resolve()
+
 
 def man_to_txt(p: Path):
     p = subprocess.Popen(['man', str(p)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,

@@ -1,6 +1,7 @@
 .idea/
 env/
 env27
+env36
 site/
 *.swp
 *.py[cod]
@@ -10,3 +11,4 @@ node_modules/
 static/css/
 scratch/
 site-deployed/
+.vagrant

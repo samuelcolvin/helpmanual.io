@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # modified from https://github.com/samuelcolvin/init-desktop
-
+set -x
 # git
 sudo apt-add-repository ppa:git-core/ppa -y
 # atom
@@ -9,6 +9,8 @@ sudo apt-add-repository ppa:webupd8team/atom -y
 sudo apt-add-repository ppa:mystic-mirage/pycharm -y
 # python versions
 sudo add-apt-repository ppa:fkrull/deadsnakes -y
+# wine
+sudo add-apt-repository ppa:ubuntu-wine/ppa -y
 
 sudo apt-get update
 sudo apt-get upgrade -y
@@ -18,7 +20,7 @@ sudo apt-get install -y ubuntu-desktop
 sudo apt-get install -y g++ gcc build-essential libbz2-dev libssl-dev libreadline-dev libsqlite3-dev tk-dev
 sudo apt-get install -y libpng-dev libfreetype6-dev
 
-sudo apt-get install -y python2.5 python2.6 python 2.7 python3.3 python 3.4 python 3.5 python3.6
+sudo apt-get install -y python2.5 python2.6 python 2.7 python3.3 python 3.4 python3.5 python3.6
 
 # from above
 sudo apt-get install -y git atom pycharm
@@ -40,6 +42,10 @@ sudo apt-get install -y llvm libncurses5-dev libncursesw5-dev
 # compiz
 sudo apt-get install -y compizconfig-settings-manager compiz-plugins compiz-plugins-extra unity-tweak-tool
 
-pip install -U pip setuptools virtualenv ipython
+# wine
+sudo apt-get install -y wine1.8 winetricks
+
+# useful and required for 12_install_popular
+python3.6 -m pip install -U pip setuptools virtualenv ipython requests
 
 sudo apt-get upgrade -y

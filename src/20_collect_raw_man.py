@@ -1,13 +1,12 @@
 #!/usr/bin/env python3.6
 import gzip
 from pathlib import Path
+from utils import DATA_DIR
 
 
 def extract_man():
     src = Path('/usr/share/man/').resolve()
-    dst = Path('data/man')
-    dst.mkdir(parents=True, exist_ok=True)
-    dst = dst.resolve()
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     i = 1
     while True:
@@ -17,7 +16,7 @@ def extract_man():
         for p in dir.iterdir():
             if not p.is_file() or p.suffix != '.gz':
                 continue
-            new_path = (dst / p.relative_to(src)).with_suffix('')
+            new_path = (DATA_DIR / p.relative_to(src)).with_suffix('')
             if new_path.exists():
                 continue
             print('{} > {}'.format(p, new_path))
