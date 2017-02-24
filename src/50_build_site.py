@@ -248,11 +248,12 @@ class GenSite:
         self.render(ctx['uri'].strip('/') + '/', 'builtin.jinja', **ctx)
 
     def generate_exec_page(self, ctx, man_uris):
-        help_lines = ctx['help_msg'].strip('\n').split('\n')
+        help_msg = ctx['help_msg'] or ''
+        help_lines = help_msg.strip('\n').split('\n')
         uri = 'help/{name}/'.format(**ctx)
         man_variant_uri = man_uris.get(ctx['name'], None)
         ctx.update(
-            help_msg=help_fix_external_links(ctx['help_msg']),
+            help_msg=help_fix_external_links(help_msg),
             page_title='{name} &bull; help'.format(**ctx),
             title='{name} help'.format(**ctx),
             description=generate_description(help_lines[0], help_lines[1:10]),

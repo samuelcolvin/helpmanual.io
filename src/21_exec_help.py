@@ -6,6 +6,7 @@ Get "--help" and "--version" (or equivalent) info from all commands.
 Run with caution.
 """
 import json
+import logging
 import os
 import queue
 import shutil
@@ -17,11 +18,19 @@ from subprocess import run, PIPE
 from tqdm import tqdm
 
 from utils import DATA_DIR
+from findhelp import process_cmd
+from help_logging import start_logging
+
+logger = logging.getLogger('exec_help')
 
 THREADS = 7
 MAX_COMMANDS = int(os.getenv('MAX_COMMANDS', 0))
 
 THIS_DIR = Path(__file__).parent.resolve()
+
+start_logging()
+
+logger = logging.getLogger('exec_help.start')
 
 
 class ExecHelp:
@@ -31,14 +40,14 @@ class ExecHelp:
         for arg in ['builtin', 'keyword']:
             v = self.run_bash('compgen -A ' + arg)
             self.commands -= {c for c in v.split('\n') if c}
-        print('found {} commands'.format(len(self.commands)))
+        logger.info('found {} commands'.format(len(self.commands)))
         self.data_path = DATA_DIR / 'exec_data.json'
         self.data = {}
         if self.data_path.exists():
             with self.data_path.open() as f:
                 self.data = json.load(f)
         self.commands = sorted({c for c in self.commands if c not in self.data})
-        print('found {} commands left to run'.format(len(self.commands)))
+        logger.info('found {} commands left to run, MAX_COMMANDS=%s'.format(len(self.commands)), MAX_COMMANDS)
         self.proc = None
         self.queue = None
         self.new_cmds = []
@@ -67,7 +76,6 @@ class ExecHelp:
             try:
                 self.process_cmd(command)
                 self.new_cmds.append(command)
-                subprocess.run(('stty', 'sane'))
                 if len(self.new_cmds) % 5 == 0:
                     self.write()
             finally:
@@ -78,19 +86,23 @@ class ExecHelp:
         if sandpit.exists():
             shutil.rmtree(str(sandpit))
 
-        self.queue = queue.Queue(maxsize=50)
+        self.queue = queue.Queue(maxsize=10)
         threads = []
         for i in range(THREADS):
             t = threading.Thread(target=self.worker)
             t.start()
             threads.append(t)
 
-        for command in tqdm(self.commands):
+        command_count = len(self.commands)
+        # for command in tqdm(self.commands):
+        for command in self.commands:
+            logger.info('%d/%d %0.2f%% "%s"', self.started, command_count, self.started / command_count * 100, command)
             self.queue.put(command)
             self.started += 1
             if MAX_COMMANDS and self.started > MAX_COMMANDS:
                 break
 
+        logger.info('waiting for %s queued jobs to finish', self.queue.qsize())
         self.queue.join()
 
         for i in range(THREADS):
@@ -100,14 +112,16 @@ class ExecHelp:
             t.join()
 
     def process_cmd(self, command):
-        outpath = self.json_dir / '{}.json'.format(command)
-        cmd = '{} {} {}'.format(self.executor, command, outpath)
-        run(['xterm', '-e', cmd], check=True)
-        if not outpath.exists():
-            raise RuntimeError('"{}" does not exist, command: "{}"'.format(outpath, cmd))
-        with outpath.open() as f:
-            data = json.load(f)
-        self.data[command] = data
+        self.data[command] = process_cmd(command)
+        subprocess.run(('stty', 'sane'))
+        # outpath = self.json_dir / '{}.json'.format(command)
+        # cmd = '{} {} {}'.format(self.executor, command, outpath)
+        # run(['xterm', '-e', cmd], check=True)
+        # if not outpath.exists():
+        #     raise RuntimeError('"{}" does not exist, command: "{}"'.format(outpath, cmd))
+        # with outpath.open() as f:
+        #     data = json.load(f)
+        # self.data[command] = data
 
     def run_bash(self, cmd):
         p = run(cmd, executable='/bin/bash', stdout=PIPE, stderr=PIPE,
