@@ -2,6 +2,8 @@
 
 ## TODO
 
+help for `bzmore` should be correct
+
 * fix weird memory error eg on `man1/ul`
 * add "installed via" and package info pages
 * search improvements eg. ranking

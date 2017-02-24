@@ -13,12 +13,16 @@ STOP_WORDS = 'unknown', 'doctype'
 
 
 def process_cmd(command):
-    help_arg, help_msg, help_returncode = try_args(command, '--help', 'help', '-help', '-h')
-    if not help_msg:
-        print('no help message found')
+    sandpit = Path('/tmp/sandpit')
+    sandpit.mkdir(parents=True, exist_ok=True)
+    os.chdir(str(sandpit))
+    help_arg, help_msg, help_returncode = try_args(command, check_help, '--help', 'help', '-help', '-h', '')
+    v_arg, v_msg, v_returncode = try_args(command, check_version, '--version', '-version', 'version', '-v')
+    if not help_msg and not v_msg:
+        print('no help message or version message found', command)
         return None
-    v_arg, v_msg, v_returncode = try_args(command, '--version', '-version', 'version', '-v', allow_short=True)
-    print('help and version messages found')
+
+    print('help and version messages found', command)
     return dict(
         name=command,
         help_arg=help_arg,
@@ -30,7 +34,30 @@ def process_cmd(command):
     )
 
 
-def try_args(command, *args, allow_short=False):
+def check_help(rc, output):
+    start = output[:150].lower()
+
+    if any(sw in start for sw in STOP_WORDS):
+        return False
+
+    if rc == 0 or 'usage' in start:
+        return True
+
+    if len(output) < 80:
+        return False
+
+
+def check_version(rc, output):
+    start = output[:150].lower()
+
+    if any(sw in start for sw in STOP_WORDS):
+        return False
+
+    if rc == 0:
+        return True
+
+
+def try_args(command, callback, *args):
     msg, returncode = None, None
     next_best = None
     arg = None
@@ -40,15 +67,11 @@ def try_args(command, *args, allow_short=False):
         if r is None:
             continue
         out, rc = r
-        start = out[:150].lower()
+        result = callback(rc, out)
 
-        if any(sw in start for sw in STOP_WORDS):
+        if result is False:
             continue
-
-        if not allow_short and len(out) < 150:
-            continue
-
-        if rc == 0 or 'usage' in start:
+        elif result is True:
             returncode = rc
             msg = out
             break
@@ -73,7 +96,7 @@ def decode(s, encoding='utf8', retry=0):
 def run(cmd, arg):
     try:
         proc = Popen(
-            '{} {}'.format(cmd, arg),
+            '{} {}'.format(cmd, arg).strip(' '),
             stdout=PIPE,
             stderr=PIPE,
             executable='/bin/bash',
@@ -106,9 +129,6 @@ if __name__ == '__main__':
     command, outpath = sys.argv[-2], sys.argv[-1]
     outpath = Path(outpath)
     if not outpath.exists():
-        sandpit = Path('/tmp/sandpit')
-        sandpit.mkdir(parents=True, exist_ok=True)
-        os.chdir(str(sandpit))
         data = process_cmd(command)
         outpath.parent.mkdir(parents=True, exist_ok=True)
         with outpath.open('w') as f:

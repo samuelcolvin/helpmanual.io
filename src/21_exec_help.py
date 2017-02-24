@@ -6,18 +6,20 @@ Get "--help" and "--version" (or equivalent) info from all commands.
 Run with caution.
 """
 import json
+import os
 import queue
 import shutil
+import subprocess
 import threading
 from pathlib import Path
 from subprocess import run, PIPE
 
-import click
+from tqdm import tqdm
 
 from utils import DATA_DIR
 
 THREADS = 7
-MAX_COMMANDS = None
+MAX_COMMANDS = int(os.getenv('MAX_COMMANDS', 0))
 
 THIS_DIR = Path(__file__).parent.resolve()
 
@@ -65,6 +67,7 @@ class ExecHelp:
             try:
                 self.process_cmd(command)
                 self.new_cmds.append(command)
+                subprocess.run(('stty', 'sane'))
                 if len(self.new_cmds) % 5 == 0:
                     self.write()
             finally:
@@ -82,12 +85,11 @@ class ExecHelp:
             t.start()
             threads.append(t)
 
-        with click.progressbar(self.commands) as bar_commands:
-            for command in bar_commands:
-                self.queue.put(command)
-                self.started += 1
-                if MAX_COMMANDS and self.started > MAX_COMMANDS:
-                    break
+        for command in tqdm(self.commands):
+            self.queue.put(command)
+            self.started += 1
+            if MAX_COMMANDS and self.started > MAX_COMMANDS:
+                break
 
         self.queue.join()
 
