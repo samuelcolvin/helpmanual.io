@@ -11,11 +11,11 @@ from threading import Thread
 from time import sleep
 
 import chardet
-from help_logging import start_logging
+from hm_logging import start_logging
 
 STOP_WORDS = 'unknown', 'doctype'
 
-logger = logging.getLogger('exec_help.run')
+logger = logging.getLogger('helpmanual.run')
 
 
 def process_cmd(command):

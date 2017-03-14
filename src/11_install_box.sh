@@ -363,5 +363,6 @@ sudo apt install -y xserver-xorg-video-all xserver-xorg-video-amdgpu xserver-xor
 sudo apt install -y xserver-xorg-video-nouveau xserver-xorg-video-nouveau-dbg xserver-xorg-video-qxl xserver-xorg-video-radeon
 sudo apt install -y xserver-xorg-video-vesa xserver-xorg-video-vmware xterm xtrans-dev xul-ext-ubufox xvfb xz-utils yelp
 sudo apt install -y yelp-xsl zcash zeitgeist-core zeitgeist-datahub zenity zenity-common zip zlib1g zlib1g-dev zopfli zsh zsh-common
+sudo apt install -y dlocate
 
 sudo apt-get upgrade -y

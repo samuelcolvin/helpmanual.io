@@ -10,18 +10,14 @@ import logging
 import os
 import queue
 import shutil
-import subprocess
 import threading
 from pathlib import Path
-from subprocess import run, PIPE
 
 from tqdm import tqdm
 
-from utils import DATA_DIR
+from utils import DATA_DIR, run_bash, run
 from findhelp import process_cmd
-from help_logging import start_logging
-
-logger = logging.getLogger('exec_help')
+from hm_logging import start_logging
 
 THREADS = 7
 MAX_COMMANDS = int(os.getenv('MAX_COMMANDS', 0))
@@ -30,15 +26,15 @@ THIS_DIR = Path(__file__).parent.resolve()
 
 start_logging()
 
-logger = logging.getLogger('exec_help.start')
+logger = logging.getLogger('helpmanual.start')
 
 
 class ExecHelp:
     def __init__(self):
-        self.commands = self.run_bash('compgen -c')
+        self.commands = run_bash('compgen -c')
         self.commands = {c for c in self.commands.split('\n') if c}
         for arg in ['builtin', 'keyword']:
-            v = self.run_bash('compgen -A ' + arg)
+            v = run_bash(f'compgen -A {arg}')
             self.commands -= {c for c in v.split('\n') if c}
         logger.info('found {} commands'.format(len(self.commands)))
         self.data_path = DATA_DIR / 'exec_data.json'
@@ -113,7 +109,7 @@ class ExecHelp:
 
     def process_cmd(self, command):
         self.data[command] = process_cmd(command)
-        subprocess.run(('stty', 'sane'))
+        run('stty sane')
         # outpath = self.json_dir / '{}.json'.format(command)
         # cmd = '{} {} {}'.format(self.executor, command, outpath)
         # run(['xterm', '-e', cmd], check=True)
@@ -122,13 +118,6 @@ class ExecHelp:
         # with outpath.open() as f:
         #     data = json.load(f)
         # self.data[command] = data
-
-    def run_bash(self, cmd):
-        p = run(cmd, executable='/bin/bash', stdout=PIPE, stderr=PIPE,
-                shell=True, universal_newlines=True)
-        if p.returncode != 0:
-            raise RuntimeError('"{}" failed, return code {}\nstderr:{}'.format(cmd, p.returncode, p.stderr))
-        return p.stdout
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.6
 import json
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -63,3 +64,18 @@ class UniversalEncoder(json.JSONEncoder):
     def default(self, obj):
         encoder = self.ENCODER_BY_TYPE[type(obj)]
         return encoder(obj)
+
+
+def run(cmd):
+    p = subprocess.run(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    if p.returncode != 0:
+        raise RuntimeError(f'"{cmd}" failed, return code {p.returncode}\nstdout:{p.stdout}\nstderr:{p.stderr}')
+    return p.stdout
+
+
+def run_bash(cmd) -> str:
+    p = subprocess.run(cmd, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                       shell=True, universal_newlines=True)
+    if p.returncode != 0:
+        raise RuntimeError('"{}" failed, return code {}\nstderr:{}'.format(cmd, p.returncode, p.stderr))
+    return p.stdout
