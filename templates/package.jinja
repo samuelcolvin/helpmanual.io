@@ -1,0 +1,18 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+  <section class="terminal-like info">
+    <comment>
+      Information about the <a href="/man8/apt/">apt</a> package "{{ name }}".
+    </comment>
+  </section>
+
+  <section class="terminal-like terminal-box">
+    {% for name, value in info %}
+    <h3>{{ name }}</h3>
+      {% for line in value %}
+        {{ line|safe }}<br>
+      {% endfor %}
+    {% endfor %}
+  </section>
+{% endblock %}

@@ -97,6 +97,9 @@ class GenSite:
         with Path('data/exec_data.json').open() as f:
             exec_data = json.load(f)
 
+        with Path('data/apt_packages.json').open() as f:
+            apt_packages = json.load(f)
+
         exec_names = {d['name'] for d in exec_data.values() if d}
         exec_data2 = []
         with Path('data/builtin_metadata.json').open() as f:
@@ -130,15 +133,22 @@ class GenSite:
             if self.fast and i > 100:
                 break
 
+        exec_paths = {h['path']: h for h in exec_data2}
+        for i, data in enumerate(sorted(apt_packages.values(), key=lambda v: v['name'] if v else 'x')):
+            if data is not None:
+                self.generate_apt_package_page(data, man_uris, exec_paths)
+            if self.fast and i > 100:
+                break
+
         print('generating list pages...')
-        self.generate_list_pages(man_data, builtin_data, exec_data2)
+        self.generate_list_pages(man_data, builtin_data, exec_data2, apt_packages)
 
         if not self.fast:
             print('generating search index...')
             self.generate_search_index(man_data, builtin_data, exec_data2)
 
         print('generating index page...')
-        self.generate_index(man_data, builtin_data, exec_data2)
+        self.generate_index(man_data, builtin_data, exec_data2, apt_packages)
 
         print('generating pages.json...')
         page_dates = self.generate_page_json()
@@ -278,7 +288,44 @@ class GenSite:
         self.render(uri.lstrip('/'), 'exec.jinja', **ctx)
         return ctx
 
-    def generate_list_pages(self, man_data, builtin_data, exec_data):
+    @staticmethod
+    def extract_package_info(data):
+        key = None
+        value = []
+        for line in data['apt-show'].split('\n'):
+            if not line:
+                continue
+            if line.startswith(' '):
+                value.append(help_fix_external_links(line).strip(' \n'))
+            else:
+                if key:
+                    yield key, value
+                key, _v = line.split(':', 1)
+                key = key.replace('-', ' ')
+                value = [help_fix_external_links(_v).strip(' \n')]
+
+        if key:
+            yield key, value
+
+        yield 'Install Info', [data['extra']]
+        yield 'Installed Automatically', [str(data['automatic'])]
+        yield 'Executables', [l.split('/', 1)[1] for l in data['dlocate-lsbin'] if l][:200]
+        yield 'Man Pages', [l.split('/', 1)[1] for l in data['dlocate-lsman'] if l][:200]
+        yield 'Files', ['/' + l.split('/', 1)[1] for l in data['dlocate-ls'] if l][:200]
+
+    def generate_apt_package_page(self, ctx, man_uris, exec_paths):
+        uri = 'packages/apt/{name}/'.format(**ctx)
+        info = list(self.extract_package_info(ctx))
+        info_dict = dict(info)
+        ctx.update(
+            page_title='{name} &bull; apt package info'.format(**ctx),
+            description=' '.join(info_dict.get('Description', []))[:80],
+            uri=uri,
+            info=info,
+        )
+        self.render(uri, 'package.jinja', **ctx)
+
+    def generate_list_pages(self, man_data, builtin_data, exec_data, apt_packages):
         self.render(
             'builtin/',
             'list.jinja',
@@ -297,6 +344,14 @@ class GenSite:
                 page_list=[(self._to_uri(d['uri']), d['name']) for d in man_data if d['man_id'] == man_id]
             )
         self.render(
+            'packages/apt/',
+            'list.jinja',
+            title='Apt packages',
+            description='information about packages installed via apt.',
+            sitemap_index=0,
+            page_list=[(self._to_uri('packages/apt/{name}'.format(**d)), d['name']) for d in apt_packages.values()]
+        )
+        self.render(
             'help/',
             'list.jinja',
             title='Help',
@@ -308,8 +363,11 @@ class GenSite:
     def _sort_help(self, data):
         return sorted(data, key=itemgetter('name'))
 
-    def generate_index(self, man_data, builtin_data, exec_data):
-        info = [(len(exec_data), self._to_uri('help'), 'help pages', 'from executables')]
+    def generate_index(self, man_data, builtin_data, exec_data, apt_packages):
+        info = [
+            (len(exec_data), self._to_uri('help'), 'help pages', 'from executables'),
+            (len(apt_packages), self._to_uri('packages/apt'), 'packages', 'from apt'),
+        ]
         for man_id in range(1, 10):
             info.append((
                 len([1 for p in man_data if p['man_id'] == man_id]),

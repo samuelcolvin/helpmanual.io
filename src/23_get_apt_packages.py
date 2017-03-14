@@ -38,6 +38,7 @@ class GetAptPackages:
             extra, auto = extra.split('[', 1)
             info = self.packages.get(p_name, {})
             info.update({
+                'name': p_name,
                 'extra': extra.strip(' \n'),
                 'automatic': 'automatic' in auto,
                 'apt-show': info.get('apt-show') or run(f'apt show {p_name}'),

@@ -1,5 +1,9 @@
-chardet==2.3.0
-ipython==5.2.2
-pyyaml==3.12
-requests==2.13.0
-tqdm==4.11.2
+aiohttp-devtools
+chardet
+grablib[build]
+ipython
+jinja2
+lxml
+pyyaml
+requests
+tqdm
