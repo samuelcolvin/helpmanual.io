@@ -234,6 +234,8 @@ nav {
   }
 }
 
+$term-link: #48aaff;
+
 .terminal {
   // so terminal appears on top of canvas
   position: relative;
@@ -252,6 +254,9 @@ nav {
     display: flex;
     justify-content: space-between;
   }
+  a {
+    color: $term-link;
+  }
 }
 
 main {
@@ -261,13 +266,25 @@ main {
 
 section.info {
   margin: 15px 15px 20px;
-  a {
-    color: #48aaff;
-  }
   .count {
     display: inline-block;
     min-width: 40px;
     text-align: right;
+  }
+}
+
+section.list {
+  display: flex;
+  flex-wrap: wrap;
+  div {
+    flex-grow: 1;
+    width: 200px;
+    padding-right: 10px;
+    height: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: $term-link;
   }
 }
 
@@ -301,9 +318,6 @@ $indent-terminal: 40px;
   i {
     text-decoration: underline;
     font-style: normal;
-  }
-  a {
-    color: #48aaff;
   }
   pre {
     color: #a5aaad;

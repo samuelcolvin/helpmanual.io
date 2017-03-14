@@ -18,8 +18,12 @@
       The site currently contains {{ total_pages }} pages, made up of:
     </p>
     <ul>
-      {% for count, text in info %}
-        <li><span class="count">{{ count }}</span> {{ text }}</li>
+      {% for count, link, link_text, text in info %}
+        <li>
+          <span class="count">{{ count }}</span>
+          <a href="{{ link }}">{{ link_text }}</a>
+          {{ text }}
+        </li>
       {% endfor %}
     </ul>
     <p>

@@ -130,6 +130,9 @@ class GenSite:
             if self.fast and i > 100:
                 break
 
+        print('generating list pages...')
+        self.generate_list_pages(man_data, builtin_data, exec_data2)
+
         if not self.fast:
             print('generating search index...')
             self.generate_search_index(man_data, builtin_data, exec_data2)
@@ -275,20 +278,46 @@ class GenSite:
         self.render(uri.lstrip('/'), 'exec.jinja', **ctx)
         return ctx
 
+    def generate_list_pages(self, man_data, builtin_data, exec_data):
+        self.render(
+            'builtin/',
+            'list.jinja',
+            title='Bash builtins',
+            description='Built in Bash commands',
+            sitemap_index=0,
+            page_list=[(self._to_uri(d['uri']), d['name']) for d in builtin_data]
+        )
+        for man_id in range(9, 0, -1):  # so sort index is right
+            self.render(
+                'man{}/'.format(man_id),
+                'list.jinja',
+                title='man{} pages'.format(man_id),
+                description=MAN_SECTIONS[man_id],
+                sitemap_index=0,
+                page_list=[(self._to_uri(d['uri']), d['name']) for d in man_data if d['man_id'] == man_id]
+            )
+        self.render(
+            'help/',
+            'list.jinja',
+            title='Help',
+            description='help and version pages from executables.',
+            sitemap_index=0,
+            page_list=[(self._to_uri(d['uri']), d['name']) for d in exec_data]
+        )
+
     def _sort_help(self, data):
         return sorted(data, key=itemgetter('name'))
 
     def generate_index(self, man_data, builtin_data, exec_data):
-        info = []
+        info = [(len(exec_data), self._to_uri('help'), 'help', 'pages from executables.')]
         for man_id in range(1, 10):
             info.append((
                 len([1 for p in man_data if p['man_id'] == man_id]),
-                'man{} man pages ({}).'.format(man_id, MAN_SECTIONS[man_id]),
+                self._to_uri('man{}'.format(man_id)),
+                'man{} pages'.format(man_id),
+                '({}).'.format(MAN_SECTIONS[man_id]),
             ))
-        info += [
-            (len(builtin_data), 'man pages for bash builtins.'),
-            (len(exec_data), 'help and version pages from executables.')
-        ]
+        info.append((len(builtin_data), self._to_uri('builtin'), 'bash builtins', 'man pages.'))
         self.render(
             'index.html',
             'index.jinja',
@@ -296,7 +325,7 @@ class GenSite:
             title='helpmanual.io',
             description='man pages and help text for unix commands',
             info=info,
-            total_pages='{:0,.0f}'.format(sum(count for count, text in info)),
+            total_pages='{:0,.0f}'.format(sum(count for count, *others in info)),
         )
 
     def generate_search_index(self, man_data, builtin_data, exec_data):

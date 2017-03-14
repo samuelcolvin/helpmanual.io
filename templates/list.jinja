@@ -1,0 +1,9 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+  <section class="list">
+    {% for uri, text in page_list %}
+      <div><a href="{{ uri }}">{{ text }}</a></div>
+    {% endfor %}
+  </section>
+{% endblock %}
