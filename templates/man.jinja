@@ -18,10 +18,18 @@
       </div>
 
       <div class="sidebar terminal-box">
+        {% if installed_via %}
+          <h5>Installed via</h5>
+          <div>
+            <a href="{{ installed_via.uri|to_uri }}">{{ installed_via.name }}</a>
+          </div>
+        {% endif %}
+
         {% for label, value in details %}
           <h5>{{ label|safe }}</h5>
           <div class="value">{{ value }}</div>
         {% endfor %}
+
         {% if outbound_links %}
           <h5>References</h5>
           {% for link, text in outbound_links %}

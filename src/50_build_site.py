@@ -79,8 +79,8 @@ class GenSite:
         self.now = datetime.now().strftime('%Y-%m-%d')
 
         with Path('data/man_metadata.json').open() as f:
-            man_data = json.load(f)  # type List
-        man_data.append({
+            self.man_data = json.load(f)  # type List
+        self.man_data.append({
             'description': 'blerp - FILTERS LOCAL OR REMOTE FILES OR RESOURCES USING PATTERNS',
             'extra1': '1692',
             'extra2': 'Imagination',
@@ -90,26 +90,44 @@ class GenSite:
             'raw_path': 'xkcd',
             'uri': '/man1/blerp',
         })
-        man_data.sort(key=lambda v: (v['man_id'], v['name']))
+        self.man_data.sort(key=lambda v: (v['man_id'], v['name']))
 
-        man_uris = {d['name']: d['uri'] for d in man_data}
+        self.man_name_lookup = {d['name']: d['uri'] for d in self.man_data}
+        self.man_uri_lookup = {d['uri']: d['name'] for d in self.man_data}
 
         with Path('data/exec_data.json').open() as f:
-            exec_data = json.load(f)
+            self.exec_data = json.load(f)
 
         with Path('data/apt_packages.json').open() as f:
-            apt_packages = json.load(f)
+            self.apt_packages = json.load(f)
 
-        exec_names = {d['name'] for d in exec_data.values() if d}
-        exec_data2 = []
+        self.apt_man_lookup = {}
+        self.apt_help_lookup = {}
+        for k, ctx in self.apt_packages.items():
+            uri = 'packages/apt/{name}/'.format(**ctx)
+            try:
+                man_pages = [re.search(r'(/man(\d)/.+?)\.\2\w*($|\.gz)', p).groups()[0]
+                             for p in ctx['dlocate-lsman'] if p]
+            except AttributeError:
+                man_pages = []
+            ctx.update(
+                uri=uri,
+                man_pages=man_pages
+            )
+            self.apt_man_lookup.update({m: ctx for m in man_pages})
+            self.apt_help_lookup.update({p: ctx for p in ctx['dlocate-lsbin']})
+
+        self.exec_names = {d['name'] for d in self.exec_data.values() if d}
+        self.exec_data2 = []
+
         with Path('data/builtin_metadata.json').open() as f:
-            builtin_data = json.load(f)
+            self.builtin_data = json.load(f)
 
         print('generating static files...')
         self.generate_static()
 
         print('generating builtin pages...')
-        for data in builtin_data:
+        for data in self.builtin_data:
             self.generate_builtin_page(data)
 
         self.cross_linker = FindCrossLinks()
@@ -117,9 +135,9 @@ class GenSite:
             self.cross_links = json.load(f)  # type Dict
 
         print('generating man pages...')
-        for i, data in enumerate(man_data):
+        for i, data in enumerate(self.man_data):
             try:
-                self.generate_man_page(data, exec_names)
+                self.generate_man_page(data)
             except Exception as e:
                 raise RuntimeError('error on {}'.format(data['uri'])) from e
             if self.fast and i > 100:
@@ -127,28 +145,28 @@ class GenSite:
 
         print('generating help pages...')
 
-        for i, data in enumerate(sorted(exec_data.values(), key=lambda v: v['name'] if v else 'x')):
+        for i, data in enumerate(sorted(self.exec_data.values(), key=lambda v: v['name'] if v else 'x')):
             if data is not None:
-                exec_data2.append(self.generate_exec_page(data, man_uris))
+                self.exec_data2.append(self.generate_exec_page(data))
             if self.fast and i > 100:
                 break
 
-        exec_paths = {h['path']: h for h in exec_data2}
-        for i, data in enumerate(sorted(apt_packages.values(), key=lambda v: v['name'] if v else 'x')):
+        self.exec_paths = {h['path']: h for h in self.exec_data2 if h and h.get('path')}
+        for i, data in enumerate(sorted(self.apt_packages.values(), key=lambda v: v['name'] if v else 'x')):
             if data is not None:
-                self.generate_apt_package_page(data, man_uris, exec_paths)
+                self.generate_apt_package_page(data)
             if self.fast and i > 100:
                 break
 
         print('generating list pages...')
-        self.generate_list_pages(man_data, builtin_data, exec_data2, apt_packages)
+        self.generate_list_pages()
 
         if not self.fast:
             print('generating search index...')
-            self.generate_search_index(man_data, builtin_data, exec_data2)
+            self.generate_search_index()
 
         print('generating index page...')
-        self.generate_index(man_data, builtin_data, exec_data2, apt_packages)
+        self.generate_index()
 
         print('generating pages.json...')
         page_dates = self.generate_page_json()
@@ -195,7 +213,7 @@ class GenSite:
         else:
             self.pages.append(uri)
 
-    def generate_man_page(self, ctx, exec_names):
+    def generate_man_page(self, ctx):
         html_path = self.html_root / 'man' / '{raw_path}.html'.format(**ctx)
         try:
             html_path = html_path.resolve()
@@ -228,8 +246,9 @@ class GenSite:
             details=details,
             outbound_links=sorted(link_info.get('outbound', {}).items()),
             inbound_links=sorted(link_info.get('inbound', {}).items()),
+            installed_via=self.apt_man_lookup.get(ctx['uri']),
         )
-        if ctx['name'] in exec_names:
+        if ctx['name'] in self.exec_names:
             ctx['pages'] = [
                 {
                     'class': 'active disabled',
@@ -260,17 +279,18 @@ class GenSite:
         )
         self.render(ctx['uri'].strip('/') + '/', 'builtin.jinja', **ctx)
 
-    def generate_exec_page(self, ctx, man_uris):
+    def generate_exec_page(self, ctx):
         help_msg = ctx['help_msg'] or ''
         help_lines = help_msg.strip('\n').split('\n')
         uri = 'help/{name}/'.format(**ctx)
-        man_variant_uri = man_uris.get(ctx['name'], None)
+        man_variant_uri = self.man_name_lookup.get(ctx['name'], None)
         ctx.update(
             help_msg=help_fix_external_links(help_msg),
             page_title='{name} &bull; help'.format(**ctx),
             title='{name} help'.format(**ctx),
             description=generate_description(help_lines[0], help_lines[1:10]),
             uri=uri,
+            installed_via=ctx.get('path') and self.apt_help_lookup.get(ctx['path']),
             pages=[
                 {
                     'text': 'Man Page',
@@ -288,8 +308,7 @@ class GenSite:
         self.render(uri.lstrip('/'), 'exec.jinja', **ctx)
         return ctx
 
-    @staticmethod
-    def extract_package_info(data):
+    def extract_package_info(self, data):
         key = None
         value = []
         for line in data['apt-show'].split('\n'):
@@ -309,30 +328,45 @@ class GenSite:
 
         yield 'Install Info', [data['extra']]
         yield 'Installed Automatically', [str(data['automatic'])]
-        yield 'Executables', [l.split('/', 1)[1] for l in data['dlocate-lsbin'] if l][:200]
-        yield 'Man Pages', [l.split('/', 1)[1] for l in data['dlocate-lsman'] if l][:200]
-        yield 'Files', ['/' + l.split('/', 1)[1] for l in data['dlocate-ls'] if l][:200]
+        yield 'Files', ['/' + l.split('/', 1)[1] for l in data['dlocate-ls'] if l][:300]
 
-    def generate_apt_package_page(self, ctx, man_uris, exec_paths):
-        uri = 'packages/apt/{name}/'.format(**ctx)
+    def generate_apt_package_page(self, ctx):
         info = list(self.extract_package_info(ctx))
         info_dict = dict(info)
+        man_pages = []
+        for p in ctx['man_pages']:
+            name = self.man_uri_lookup.get(p)
+            if name:
+                man_pages.append((p, name))
+            else:
+                man_pages.append((None, p))
+        help_pages = []
+        for p in ctx['dlocate-lsbin']:
+            if not p:
+                continue
+            exec_data = self.exec_paths.get(p)
+            if exec_data:
+                help_pages.append((exec_data['uri'], exec_data['name']))
+            else:
+                help_pages.append((None, p.rsplit('/', 1)[1]))
+
         ctx.update(
             page_title='{name} &bull; apt package info'.format(**ctx),
-            description=' '.join(info_dict.get('Description', []))[:80],
-            uri=uri,
+            description=' '.join(info_dict.get('Description', [])),
             info=info,
+            man_pages=man_pages,
+            help_pages=help_pages,
         )
-        self.render(uri, 'package.jinja', **ctx)
+        self.render(ctx['uri'], 'package.jinja', **ctx)
 
-    def generate_list_pages(self, man_data, builtin_data, exec_data, apt_packages):
+    def generate_list_pages(self):
         self.render(
             'builtin/',
             'list.jinja',
             title='Bash builtins',
             description='Built in Bash commands',
             sitemap_index=0,
-            page_list=[(self._to_uri(d['uri']), d['name']) for d in builtin_data]
+            page_list=[(self._to_uri(d['uri']), d['name']) for d in self.builtin_data]
         )
         for man_id in range(9, 0, -1):  # so sort index is right
             self.render(
@@ -341,7 +375,7 @@ class GenSite:
                 title='man{} pages'.format(man_id),
                 description=MAN_SECTIONS[man_id],
                 sitemap_index=0,
-                page_list=[(self._to_uri(d['uri']), d['name']) for d in man_data if d['man_id'] == man_id]
+                page_list=[(self._to_uri(d['uri']), d['name']) for d in self.man_data if d['man_id'] == man_id]
             )
         self.render(
             'packages/apt/',
@@ -349,7 +383,7 @@ class GenSite:
             title='Apt packages',
             description='information about packages installed via apt.',
             sitemap_index=0,
-            page_list=[(self._to_uri('packages/apt/{name}'.format(**d)), d['name']) for d in apt_packages.values()]
+            page_list=[(self._to_uri('packages/apt/{name}'.format(**d)), d['name']) for d in self.apt_packages.values()]
         )
         self.render(
             'help/',
@@ -357,25 +391,25 @@ class GenSite:
             title='Help',
             description='help and version pages from executables.',
             sitemap_index=0,
-            page_list=[(self._to_uri(d['uri']), d['name']) for d in exec_data]
+            page_list=[(self._to_uri(d['uri']), d['name']) for d in self.exec_data2]
         )
 
     def _sort_help(self, data):
         return sorted(data, key=itemgetter('name'))
 
-    def generate_index(self, man_data, builtin_data, exec_data, apt_packages):
+    def generate_index(self):
         info = [
-            (len(exec_data), self._to_uri('help'), 'help pages', 'from executables'),
-            (len(apt_packages), self._to_uri('packages/apt'), 'packages', 'from apt'),
+            (len(self.exec_data), self._to_uri('help'), 'help pages', 'from executables'),
+            (len(self.apt_packages), self._to_uri('packages/apt'), 'packages', 'from apt'),
         ]
         for man_id in range(1, 10):
             info.append((
-                len([1 for p in man_data if p['man_id'] == man_id]),
+                len([1 for p in self.man_data if p['man_id'] == man_id]),
                 self._to_uri('man{}'.format(man_id)),
                 'man{} pages'.format(man_id),
                 '({})'.format(MAN_SECTIONS[man_id]),
             ))
-        info.append((len(builtin_data), self._to_uri('builtin'), 'bash builtin', 'pages'))
+        info.append((len(self.builtin_data), self._to_uri('builtin'), 'bash builtin', 'pages'))
         self.render(
             'index.html',
             'index.jinja',
@@ -386,10 +420,10 @@ class GenSite:
             total_pages='{:0,.0f}'.format(sum(count for count, *others in info)),
         )
 
-    def generate_search_index(self, man_data, builtin_data, exec_data):
+    def generate_search_index(self):
         man_dir = Path('data/text')
         search_data = []
-        for d in man_data:
+        for d in self.man_data:
             man_path = man_dir / 'man' / '{raw_path}.txt'.format(**d)
             body = man_path.read_text()
             keywords = []
@@ -405,7 +439,7 @@ class GenSite:
                 ('keywords', ' '.join(keywords)),
                 ('body', body),
             ]))
-        for d in builtin_data:
+        for d in self.builtin_data:
             html_path = (self.html_root / d['raw_path']).resolve()
             doc = html.fromstring(html_path.read_text())
             body = doc.text_content().replace('\n', ' ')
@@ -417,7 +451,7 @@ class GenSite:
                 ('keywords', ''),
                 ('body', body),
             ]))
-        for d in exec_data:
+        for d in self.exec_data2:
             body = '{help_msg} {version_msg}'.format(**d)
             body = body.replace('\n', ' ')
             body = re.sub('  +', ' ', body)

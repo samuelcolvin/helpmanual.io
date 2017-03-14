@@ -23,4 +23,11 @@
 
     <div class="white-space">{{ help_msg|safe }}</div>
   </section>
+
+  {% if installed_via %}
+  <section class="terminal-like terminal-box">
+    <h3>Installed via</h3>
+    <a href="{{ installed_via.uri|to_uri }}">{{ installed_via.name }}</a>
+  </section>
+  {% endif %}
 {% endblock %}

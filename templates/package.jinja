@@ -1,18 +1,48 @@
 {% extends 'base.jinja' %}
 
 {% block content %}
-  <section class="terminal-like info">
-    <comment>
-      Information about the <a href="/man8/apt/">apt</a> package "{{ name }}".
-    </comment>
-  </section>
+  <section class="terminal-like">
+    <div class="columns">
+      <div class="main terminal-box">
+        <comment>
+          Information about the <a href="/man8/apt/">apt</a> package "{{ name }}".
+        </comment>
 
-  <section class="terminal-like terminal-box">
-    {% for name, value in info %}
-    <h3>{{ name }}</h3>
-      {% for line in value %}
-        {{ line|safe }}<br>
-      {% endfor %}
-    {% endfor %}
+        {% for name, value in info %}
+        <h3>{{ name }}</h3>
+          {% for line in value %}
+            {{ line|safe }}<br>
+          {% endfor %}
+        {% endfor %}
+      </div>
+
+      <div class="sidebar terminal-box">
+        {% if man_pages %}
+          <h5>Man Pages</h5>
+          {% for link, text in man_pages %}
+            <div>
+              {% if link %}
+                <a href="{{ link|to_uri }}">{{ text }}</a>
+              {% else %}
+                {{ text }}
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if help_pages %}
+          <h5>Executables</h5>
+          {% for link, text in help_pages %}
+            <div>
+              {% if link %}
+                <a href="{{ link|to_uri }}">{{ text }}</a>
+              {% else %}
+                {{ text }}
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
   </section>
 {% endblock %}
