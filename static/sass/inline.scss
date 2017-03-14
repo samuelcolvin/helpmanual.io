@@ -276,6 +276,7 @@ section.info {
 section.list {
   display: flex;
   flex-wrap: wrap;
+  padding: 2px 6px;
   div {
     flex-grow: 1;
     width: 200px;

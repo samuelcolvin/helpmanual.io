@@ -309,7 +309,7 @@ class GenSite:
         return sorted(data, key=itemgetter('name'))
 
     def generate_index(self, man_data, builtin_data, exec_data):
-        info = [(len(exec_data), self._to_uri('help'), 'help', 'pages from executables.')]
+        info = [(len(exec_data), self._to_uri('help'), 'help pages', 'from executables.')]
         for man_id in range(1, 10):
             info.append((
                 len([1 for p in man_data if p['man_id'] == man_id]),
