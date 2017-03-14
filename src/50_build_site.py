@@ -309,15 +309,15 @@ class GenSite:
         return sorted(data, key=itemgetter('name'))
 
     def generate_index(self, man_data, builtin_data, exec_data):
-        info = [(len(exec_data), self._to_uri('help'), 'help pages', 'from executables.')]
+        info = [(len(exec_data), self._to_uri('help'), 'help pages', 'from executables')]
         for man_id in range(1, 10):
             info.append((
                 len([1 for p in man_data if p['man_id'] == man_id]),
                 self._to_uri('man{}'.format(man_id)),
                 'man{} pages'.format(man_id),
-                '({}).'.format(MAN_SECTIONS[man_id]),
+                '({})'.format(MAN_SECTIONS[man_id]),
             ))
-        info.append((len(builtin_data), self._to_uri('builtin'), 'bash builtins', 'man pages.'))
+        info.append((len(builtin_data), self._to_uri('builtin'), 'bash builtin', 'pages'))
         self.render(
             'index.html',
             'index.jinja',
