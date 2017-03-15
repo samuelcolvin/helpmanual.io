@@ -463,6 +463,15 @@ class GenSite:
                 ('keywords', '{help_arg} {version_arg}'.format(**d)),
                 ('body', body),
             ]))
+        for d in sorted(self.apt_packages.values(), key=itemgetter('name')):
+            search_data.append(OrderedDict([
+                ('name', d['name']),
+                ('uri', self._to_uri(d['uri'])),
+                ('src', 'packages-apt'),
+                ('description', self.short_description(d['description'])),
+                ('keywords', ''),
+                ('body', d['apt-show']),
+            ]))
 
         search_dir = self.site_dir / 'search'
         subset = []
