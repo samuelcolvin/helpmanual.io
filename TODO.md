@@ -5,10 +5,8 @@
 help for `bzmore` should be correct
 
 * fix weird memory error eg on `man1/ul`
-* add "installed via" and package info pages
 * search improvements eg. ranking
 * remove links to self
-* fix single quotes in description, eg. `systemd-cat`
 * use NAME not PROLOG for description on posix pages 
 * add posix page as tab and change search badge
 * full build command with vagrant
@@ -17,8 +15,9 @@ help for `bzmore` should be correct
 To deploy
 
 ```
-python src/50_build_site.py
-aws s3 --profile personal sync site/ s3://helpmanual.io/ --region us-east-1 --delete
+source env/bin/activate
+./src/50_build_site.py
+time aws s3 --profile personal sync site/ s3://helpmanual.io/ --region us-east-1 --delete
 ```
 
 To watch js:

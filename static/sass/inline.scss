@@ -122,7 +122,7 @@ nav {
       background-color: $result-color;
       display: inline-block;
       padding: .25em .4em;
-      font-size: 75%;
+      font-size: 73%;
       font-weight: bold;
       color: white;
       //white-space: nowrap;
@@ -135,7 +135,6 @@ nav {
     }
   }
 }
-
 
 
 #spinner {
@@ -231,6 +230,17 @@ nav {
     padding: 2px 4px;
     a {
       padding: 6px 8px;
+    }
+  }
+}
+@media (max-width: 450px) {
+  .head h1 {
+    margin: 8px 0 6px 4px;
+  }
+  .menu {
+    padding: 2px 0;
+    a {
+      margin: 0 2px;
     }
   }
 }
@@ -381,4 +391,19 @@ $indent-terminal: 40px;
 a.disabled {
   pointer-events: none;
   cursor: default;
+}
+
+// google ads
+.adsbygoogle {
+  &.sidebar {
+    display: block;
+    width: calc(100% - 20px);
+    max-width: 300px;
+    height: 600px;
+    margin-top: 20px;
+    margin-left: 15px;
+    border: none;
+    // for testing:
+    //background-color: green;
+  }
 }

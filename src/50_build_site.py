@@ -49,6 +49,8 @@ class GenSite:
     def __init__(self):
         self.debug = 'debug' in sys.argv
         self.fast = 'fast' in sys.argv
+        self.unchanged = 'unchanged' in sys.argv
+        self.unchanged_man = 'unchanged_man' in sys.argv
         self.hashed_static_files = {}
         self.site_dir = Path(__file__).parent / '..' / 'site'
 
@@ -172,7 +174,7 @@ class GenSite:
         page_dates = self.generate_page_json()
 
         print('generating sitemap...')
-        self.render('sitemap.xml', 'sitemap.xml.jinja', pages=self.sitemap_pages(page_dates))
+        self.generate_sitemap(page_dates)
 
         print('generating extras...')
         self.generate_extra()
@@ -525,7 +527,10 @@ class GenSite:
             dynamic_hash = hashlib.md5(dynamic_content.encode()).hexdigest()
 
             old_data = old_pages.get(page, None)
-            if old_data and old_data['hash'] == dynamic_hash:
+            if old_data and (
+                    self.unchanged or
+                    self.unchanged_man and page.startswith('/man') or
+                    old_data['hash'] == dynamic_hash):
                 unchanged.append(page)
                 date = old_data['date']
             else:
@@ -555,7 +560,7 @@ class GenSite:
             description = description[description.index('-') + 1:]
         return description.lstrip(' -')
 
-    def sitemap_pages(self, page_dates):
+    def generate_sitemap(self, page_dates):
         results = []
         for page in self.pages:
             if page == '/pages.json':
@@ -584,7 +589,7 @@ class GenSite:
                 'priority': '{:0.2f}'.format(p),
             })
         results.sort(key=lambda p: (p['priority'], p['lastmod']), reverse=True)
-        return results
+        self.render('sitemap.xml', 'sitemap.xml.jinja', pages=results)
 
     def generate_extra(self):
         self.render('robots.txt', 'robots.txt.jinja')

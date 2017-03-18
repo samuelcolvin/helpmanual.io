@@ -1,4 +1,5 @@
 {% extends 'base.jinja' %}
+{% import 'ads.jinja' as ads %}
 
 {% block content %}
   <section class="terminal-like">
@@ -16,32 +17,35 @@
         {% endfor %}
       </div>
 
-      <div class="sidebar terminal-box">
-        {% if man_pages %}
-          <h5>Man Pages</h5>
-          {% for link, text in man_pages %}
-            <div>
-              {% if link %}
-                <a href="{{ link|to_uri }}">{{ text }}</a>
-              {% else %}
-                {{ text }}
-              {% endif %}
-            </div>
-          {% endfor %}
-        {% endif %}
+      <div class="sidebar">
+        <div class="terminal-box">
+          {% if man_pages %}
+            <h5>Man Pages</h5>
+            {% for link, text in man_pages %}
+              <div>
+                {% if link %}
+                  <a href="{{ link|to_uri }}">{{ text }}</a>
+                {% else %}
+                  {{ text }}
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% endif %}
 
-        {% if help_pages %}
-          <h5>Executables</h5>
-          {% for link, text in help_pages %}
-            <div>
-              {% if link %}
-                <a href="{{ link|to_uri }}">{{ text }}</a>
-              {% else %}
-                {{ text }}
-              {% endif %}
-            </div>
-          {% endfor %}
-        {% endif %}
+          {% if help_pages %}
+            <h5>Executables</h5>
+            {% for link, text in help_pages %}
+              <div>
+                {% if link %}
+                  <a href="{{ link|to_uri }}">{{ text }}</a>
+                {% else %}
+                  {{ text }}
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+        {{ ads.sidebar() }}
       </div>
     </div>
   </section>

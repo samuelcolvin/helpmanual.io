@@ -1,4 +1,5 @@
 {% extends 'base.jinja' %}
+{% import 'ads.jinja' as ads %}
 
 {% block content %}
   <section id="man-page" class="terminal-like">
@@ -17,35 +18,38 @@
         <!-- } end of man page content -->
       </div>
 
-      <div class="sidebar terminal-box">
-        {% if installed_via %}
-          <h5>Installed via</h5>
-          <div>
-            <a href="{{ installed_via.uri|to_uri }}">{{ installed_via.name }}</a>
-          </div>
-        {% endif %}
+      <div class="sidebar">
+        <div class="terminal-box">
+          {% if installed_via %}
+            <h5>Installed via</h5>
+            <div>
+              <a href="{{ installed_via.uri|to_uri }}">{{ installed_via.name }}</a>
+            </div>
+          {% endif %}
 
-        {% for label, value in details %}
-          <h5>{{ label|safe }}</h5>
-          <div class="value">{{ value }}</div>
-        {% endfor %}
+          {% for label, value in details %}
+            <h5>{{ label|safe }}</h5>
+            <div class="value">{{ value }}</div>
+          {% endfor %}
 
-        {% if outbound_links %}
-          <h5>References</h5>
-          {% for link, text in outbound_links %}
+          {% if outbound_links %}
+            <h5>References</h5>
+            {% for link, text in outbound_links %}
+              <div>
+                <a href="{{ link|to_uri }}">{{ text }}</a>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% if inbound_links %}
+            <h5>Referenced By</h5>
+            {% for link, text in inbound_links %}
             <div>
               <a href="{{ link|to_uri }}">{{ text }}</a>
             </div>
-          {% endfor %}
-        {% endif %}
-        {% if inbound_links %}
-          <h5>Referenced By</h5>
-          {% for link, text in inbound_links %}
-          <div>
-            <a href="{{ link|to_uri }}">{{ text }}</a>
-          </div>
-          {% endfor %}
-        {% endif %}
+            {% endfor %}
+          {% endif %}
+        </div>
+        {{ ads.sidebar() }}
       </div>
     </div>
   </section>
