@@ -4,6 +4,10 @@
 
 help for `bzmore` should be correct
 
+* drill man page missing
+* update search
+* mac commands
+* https://helpmanual.io/man1/nvidia-cuda-mps-control/ fix header
 * fix weird memory error eg on `man1/ul`
 * search improvements eg. ranking
 * remove links to self
