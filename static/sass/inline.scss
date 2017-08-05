@@ -34,7 +34,8 @@ a {
 }
 
 $header-height: 400px;
-$header-colour: #42587f;
+//$header-colour: #42587f;
+$header-colour: map-get($colour-grid, "darken-4");
 
 header {
   background-color: $header-colour;
@@ -92,11 +93,12 @@ nav {
       line-height: 1.25;
       color: #55595c;
       //background-clip: padding-box;
-      border: 1px solid #ccc;
+      border: 2px solid $header-colour;
       border-radius: .25rem;
       outline: none;
+      transition: border 800ms ease;
       &:focus {
-        border: 1px solid $result-color;
+        border-color: $result-color;
       }
     }
 
@@ -199,8 +201,15 @@ nav {
   }
   aside {
     color: #ccc;
+    padding-top: 8px;
+    max-width: 480px;
+    float: right;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
+
 .menu {
   padding: 2px 14px;
   a {
