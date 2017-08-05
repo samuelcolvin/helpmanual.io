@@ -1,11 +1,11 @@
 import $ from 'jquery'
 import Bloodhound from 'bloodhound-js'
 
-ga('create', 'UA-62733018-3', 'auto')
-ga('send', 'pageview')
+window.ga('create', 'UA-62733018-3', 'auto')
+window.ga('send', 'pageview')
 
-const SEARCH_URL = 'https://search.helpmanual.io/{query}'
-// const SEARCH_URL = 'http://localhost:5000/{query}'
+const SEARCH_URL = 'https://search1.helpmanual.io/q/{query}'
+// const SEARCH_URL = 'http://localhost:5000/q/{query}'
 
 let search_source = new Bloodhound({
   datumTokenizer: Bloodhound.tokenizers.whitespace,
@@ -39,12 +39,22 @@ $search.typeahead({
 </div>`
   }
 }
-).on('typeahead:select', (ev, suggestion) => go_to(suggestion.uri, true, {
-  eventCategory: 'Search',
-  eventAction: 'select',
-  eventLabel: suggestion.uri
-})
-).on('typeahead:asyncrequest', () => $spinner.show()
+).on('typeahead:select', (ev, suggestion) => {
+  window.ga('send', 'event', {
+    eventCategory: 'Search',
+    eventAction: 'select',
+    eventLabel: suggestion.uri
+  })
+  go_to(suggestion.uri, true)
+}
+).on('typeahead:asyncrequest', () => {
+  window.ga('send', 'event', {
+    eventCategory: 'Search',
+    eventAction: 'request',
+    eventLabel: location.pathname
+  })
+  $spinner.show()
+}
 ).on('typeahead:asynccancel typeahead:asyncreceive', () => $spinner.hide()
 )
 
@@ -82,14 +92,14 @@ window.onscroll = () => {
 
 let $dynamic = $('#dynamic')
 
-function go_to(uri, push, event){
+function go_to(uri, push){
   if (!uri.startsWith('/')) {
     return true
   }
   $dynamic.fadeOut(2000)
 
   $dynamic.load(uri + ' #dynamic', (response, status, xhr) => {
-    if (status == 'error') {
+    if (status === 'error') {
       console.error('Error getting uri', uri, xhr)
       window.location = uri
       return
@@ -97,9 +107,8 @@ function go_to(uri, push, event){
     $dynamic.stop(true, false)
     push && history.pushState(null, '', uri)
 
-    ga('set', 'page', uri)
-    ga('send', 'pageview')
-    event !== undefined && ga('send', 'event', event)
+    window.ga('set', 'page', uri)
+    window.ga('send', 'pageview')
 
     $dynamic.fadeIn(200)
     // reset stuff after "going to" the new page
@@ -112,6 +121,7 @@ function go_to(uri, push, event){
 }
 
 function a_click() {
+  setTimeout(() => $('#search').focus(), 50)
   let $a = $('a')
   $a.unbind('click')
   $a.click(function () {
@@ -157,7 +167,7 @@ function draw () {
   let x_step = s * 1.5
   for (let i = 0; i < h / x_step; i++) {
     let x = i * x_step
-    let y_start = i % 2 == 0 ? 0 : s
+    let y_start = i % 2 === 0 ? 0 : s
     for (let y = y_start; y < w + s; y += s * 2) {
       hex(x, y)
     }
