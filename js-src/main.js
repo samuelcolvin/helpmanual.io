@@ -4,7 +4,7 @@ import Bloodhound from 'bloodhound-js'
 window.ga('create', 'UA-62733018-3', 'auto')
 window.ga('send', 'pageview')
 
-const SEARCH_URL = 'https://search1.helpmanual.io/q/{query}'
+const SEARCH_URL = 'https://search.helpmanual.io/q/{query}'
 // const SEARCH_URL = 'http://localhost:5000/q/{query}'
 
 let search_source = new Bloodhound({
@@ -47,14 +47,7 @@ $search.typeahead({
   })
   go_to(suggestion.uri, true)
 }
-).on('typeahead:asyncrequest', () => {
-  window.ga('send', 'event', {
-    eventCategory: 'Search',
-    eventAction: 'request',
-    eventLabel: location.pathname
-  })
-  $spinner.show()
-}
+).on('typeahead:asyncrequest', () => $spinner.show()
 ).on('typeahead:asynccancel typeahead:asyncreceive', () => $spinner.hide()
 )
 
@@ -112,7 +105,7 @@ function go_to(uri, push){
 
     $dynamic.fadeIn(200)
     // reset stuff after "going to" the new page
-    a_click()
+    page_change()
     prepare_scroll()
     $search.typeahead('val', '')
     document.title = $dynamic.find('h1').first().text()
@@ -120,8 +113,19 @@ function go_to(uri, push){
   return false
 }
 
-function a_click() {
+function google_ads () {
+  if (!window.adsbygoogle) {
+    // adsbygoogle js isn't loaded yet
+    window.adsbygoogle = [{}]
+  } else if ($('.adsbygoogle').not('[data-adsbygoogle-status]').length) {
+    // adsbygoogle is loaded and there are elements which haven't been initialised
+    window.adsbygoogle.push({})
+  }
+}
+
+function page_change() {
   setTimeout(() => $('#search').focus(), 50)
+  google_ads()
   let $a = $('a')
   $a.unbind('click')
   $a.click(function () {
@@ -175,7 +179,7 @@ function draw () {
 }
 
 $(document).ready(() => {
-  a_click()
+  page_change()
   draw()
 })
 

@@ -4,6 +4,9 @@
 
 help for `bzmore` should be correct
 
+* Lots of documents appear to be duplicated in search data
+* add pages for all apt files
+
 * drill man page missing
 * update search
 * mac commands

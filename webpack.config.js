@@ -1,25 +1,34 @@
-var webpack = require('webpack')
+const webpack = require('webpack')
+const path = require('path')
 
 module.exports = {
-  entry: './js-src/main.js',
-  // remove output to supply it from command line
-  // output: {path: __dirname + '/site/static/js', filename: 'main.js'},
-  output: {path: __dirname + '/static/js', filename: 'main.js'},
+  entry: {
+    main: path.resolve(__dirname, 'js-src/main.js')
+  },
+  output: {
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'static/js'),
+    publicPath: '/static/js/',
+  },
+  devtool: 'source-map',
   externals: {
     jquery: 'jQuery'
   },
   module: {
     loaders: [
       {
-        test: /.js$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: [{
+          loader: 'babel-loader',
+          options: {
+            presets: [['env', {
+              loose: true,
+              targets: {browsers: ['last 2 versions']}
+            }]]
+          }
+        }]
       }
     ]
-  },
-  plugins: [
-    new webpack.optimize.UglifyJsPlugin({compress: {warnings: false}}),
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.OccurrenceOrderPlugin()
-  ]
+  }
 }

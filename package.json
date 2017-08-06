@@ -4,17 +4,19 @@
   "description": "",
   "main": "src/main.jsx",
   "scripts": {
-    "webpack": "webpack --colors",
+    "webpack": "webpack --colors --optimize-minimize",
     "webpack-watch": "webpack --progress --colors --watch"
   },
   "author": "Samuel Colvin <s@muelcolvin.com>",
   "license": "MIT",
   "dependencies": {
-    "babel-loader": "^6.2.5",
-    "babel-preset-es2015": "^6.16.0",
-    "bloodhound-js": "^1.2.1",
-    "eslint": "^2.2.0",
-    "webpack": "^1.13.2"
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.1",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-es2015": "^6.24.1",
+    "bloodhound-js": "^1.2.2",
+    "eslint": "^4.4.0",
+    "webpack": "^3.4.1"
   },
   "babel": {
     "presets": [
