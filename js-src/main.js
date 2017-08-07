@@ -1,8 +1,12 @@
 import $ from 'jquery'
 import Bloodhound from 'bloodhound-js'
 
-window.ga('create', 'UA-62733018-3', 'auto')
-window.ga('send', 'pageview')
+function ga (...args) {
+  window.ga && window.ga(...args)
+}
+
+ga('create', 'UA-62733018-3', 'auto')
+ga('send', 'pageview')
 
 const SEARCH_URL = 'https://search.helpmanual.io/q/{query}'
 // const SEARCH_URL = 'http://localhost:5000/q/{query}'
@@ -19,6 +23,7 @@ let search_source = new Bloodhound({
 const EMPTY = '<div class="no-results">No results found</div>'
 let $spinner = $('#spinner')
 let $search = $('#search')
+let search_term = null
 
 $search.typeahead({
   minLength: 2
@@ -40,16 +45,17 @@ $search.typeahead({
   }
 }
 ).on('typeahead:select', (ev, suggestion) => {
-  window.ga('send', 'event', {
+  ga('send', 'event', {
     eventCategory: 'Search',
     eventAction: 'select',
-    eventLabel: suggestion.uri
+    eventLabel: search_term
   })
+  ga('send', 'pageview', '/synthetic-search?sitesearch=' + encodeURI(search_term))
   go_to(suggestion.uri, true)
-}
-).on('typeahead:asyncrequest', () => $spinner.show()
-).on('typeahead:asynccancel typeahead:asyncreceive', () => $spinner.hide()
-)
+}).on('typeahead:asyncrequest', () => {
+  search_term = $search.val()
+  $spinner.show()
+}).on('typeahead:asynccancel typeahead:asyncreceive', () => $spinner.hide())
 
 // very useful during development:
 // $(document).on('typeahead:beforeclose', (event) => event.preventDefault())
@@ -100,8 +106,8 @@ function go_to(uri, push){
     $dynamic.stop(true, false)
     push && history.pushState(null, '', uri)
 
-    window.ga('set', 'page', uri)
-    window.ga('send', 'pageview')
+    ga('set', 'page', uri)
+    ga('send', 'pageview')
 
     $dynamic.fadeIn(200)
     // reset stuff after "going to" the new page
@@ -115,7 +121,7 @@ function go_to(uri, push){
 
 function google_ads () {
   if (!window.adsbygoogle) {
-    // adsbygoogle js isn't loaded yet
+    // adsbygoogle js isn't loaded yet (or is blocked)
     window.adsbygoogle = [{}]
   } else if ($('.adsbygoogle').not('[data-adsbygoogle-status]').length) {
     // adsbygoogle is loaded and there are elements which haven't been initialised

@@ -544,10 +544,10 @@ class GenSite:
         change_percentage = len(changed) / (len(changed) + len(unchanged)) * 100
         print('unchanged pages {} vs. {} changed, changed proportion {:0.2f}%'.format(len(unchanged), len(changed),
                                                                                       change_percentage))
-        if len(changed) < 50:
-            print('changed:\n  ' + '\n  '.join(changed))
-        if len(unchanged) < 50:
-            print('unchanged:\n  ' + '\n  '.join(unchanged))
+        # if len(changed) < 50:
+        #     print('changed:\n  ' + '\n  '.join(changed))
+        # if len(unchanged) < 50:
+        #     print('unchanged:\n  ' + '\n  '.join(unchanged))
         page_info.sort(key=lambda p: (p['date'], p['page']), reverse=True)
         self.render('pages.json', 'pages.json.jinja', pages=page_info)
         return {p['page']: p['date'] for p in page_info}
@@ -598,9 +598,7 @@ class GenSite:
 
     def generate_static(self):
         print('compiling js...')
-        args = 'npm', 'run', 'webpack', '--colors'
-        if not self.debug and not self.fast:
-            args += '--optimize-minimize',
+        args = 'npm', 'run', 'webpack'
         subprocess.run(args, check=True)
         for path in Path('static/favicons').resolve().iterdir():
             if path.name == 'master.png':
