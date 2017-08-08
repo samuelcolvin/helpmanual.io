@@ -82,12 +82,12 @@
       </div>
     </div><!-- dynamic -->
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="{{ 'static/js/jquery.min.js'|static }}"></script>
     <script src="{{ 'static/js/analytics.js'|static }}"></script>
     <script src="{{ 'static/js/typeahead.min.js'|static }}"></script>
     <script src="{{ 'static/js/main.js'|static }}"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     {# for running js live: #}
-    {# <script src="/static/js/main.js"></script> #}
+{#     <script src="/static/js/main.js"></script>#}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
   </body>
 </html>

@@ -29,7 +29,7 @@ time aws s3 --profile personal sync site/ s3://helpmanual.io/ --region us-east-1
 
 To watch js:
 ```
-./node_modules/.bin/webpack --progress --colors --watch
+yarn run webpack-watch
 ```
 
 To generate ansi html

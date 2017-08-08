@@ -5,7 +5,7 @@
   "main": "src/main.jsx",
   "scripts": {
     "webpack": "webpack --colors --optimize-minimize",
-    "webpack-watch": "webpack --progress --colors --watch"
+    "webpack-watch": "webpack --progress --colors --watch --output-path site/static/js"
   },
   "author": "Samuel Colvin <s@muelcolvin.com>",
   "license": "MIT",
