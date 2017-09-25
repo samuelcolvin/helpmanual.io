@@ -6,6 +6,8 @@ from html import escape, unescape
 #!/usr/bin/env python3.6
 import click
 
+from utils import load_json_dir
+
 c = re.compile
 HTTP_START = c('^https?://.+$')
 STRIP = '().,\'"\\'
@@ -118,8 +120,7 @@ def help_fix_external_links(content):
 
 
 def check_help_pages():
-    with Path('data/exec_data.json').open() as f:
-        exec_data = json.load(f)
+    exec_data = load_json_dir(Path('data/exec'))
 
     # print(help_fix_external_links(exec_data['pdfflip']['help_msg']))
 

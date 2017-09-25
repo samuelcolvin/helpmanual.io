@@ -37,12 +37,9 @@ class ExecHelp:
             v = run_bash(f'compgen -A {arg}')
             self.commands -= {c for c in v.split('\n') if c}
         logger.info('found {} commands'.format(len(self.commands)))
-        self.data_path = DATA_DIR / 'exec_data.json'
-        self.data = {}
-        if self.data_path.exists():
-            with self.data_path.open() as f:
-                self.data = json.load(f)
-        self.commands = sorted({c for c in self.commands if c not in self.data})
+        self.data_path = DATA_DIR / 'exec'
+        command_names = {p.stem for p in self.data_path.iterdir()}
+        self.commands = sorted({c for c in self.commands if c not in command_names})
         logger.info('found {} commands left to run, MAX_COMMANDS=%s'.format(len(self.commands)), MAX_COMMANDS)
         self.proc = None
         self.queue = None
@@ -57,12 +54,11 @@ class ExecHelp:
         try:
             self.go()
         finally:
-            self.write()
             print('generated info for {} commands'.format(len(self.new_cmds)))
 
-    def write(self):
-        with self.data_path.open('w') as f:
-            json.dump(self.data, f, sort_keys=True, indent=2)
+    def write(self, command, data):
+        with (self.data_path / f'{command}.json').open('w') as f:
+            json.dump(data, f, sort_keys=True, indent=2)
 
     def worker(self):
         while True:
@@ -72,8 +68,6 @@ class ExecHelp:
             try:
                 self.process_cmd(command)
                 self.new_cmds.append(command)
-                if len(self.new_cmds) % 5 == 0:
-                    self.write()
             finally:
                 self.queue.task_done()
 
@@ -108,7 +102,8 @@ class ExecHelp:
             t.join()
 
     def process_cmd(self, command):
-        self.data[command] = process_cmd(command)
+        data = process_cmd(command)
+        self.write(command, data)
         run('stty sane')
         # outpath = self.json_dir / '{}.json'.format(command)
         # cmd = '{} {} {}'.format(self.executor, command, outpath)

@@ -16,7 +16,7 @@ from grablib import Grab
 from jinja2 import Environment, FileSystemLoader, Markup
 from lxml import html
 
-from utils import generate_description
+from utils import generate_description, load_json_dir
 from cross_links import FindCrossLinks
 from external_links import man_fix_external_links, help_fix_external_links
 
@@ -97,11 +97,8 @@ class GenSite:
         self.man_name_lookup = {d['name']: d['uri'] for d in self.man_data}
         self.man_uri_lookup = {d['uri']: d['name'] for d in self.man_data}
 
-        with Path('data/exec_data.json').open() as f:
-            self.exec_data = json.load(f)
-
-        with Path('data/apt_packages.json').open() as f:
-            self.apt_packages = json.load(f)
+        self.exec_data = load_json_dir(Path('data/exec'))
+        self.apt_packages = load_json_dir(Path('data/apt_packages'))
 
         self.apt_man_lookup = {}
         self.apt_help_lookup = {}

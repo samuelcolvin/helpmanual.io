@@ -67,10 +67,13 @@ class UniversalEncoder(json.JSONEncoder):
 
 
 def run(cmd):
-    p = subprocess.run(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    p = subprocess.run(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.returncode != 0:
         raise RuntimeError(f'"{cmd}" failed, return code {p.returncode}\nstdout:{p.stdout}\nstderr:{p.stderr}')
-    return p.stdout
+    try:
+        return p.stdout.decode()
+    except UnicodeDecodeError as e:
+        raise RuntimeError(f'error decoding "{cmd}", stdout: "{p.stdout}') from e
 
 
 def run_bash(cmd) -> str:
@@ -79,3 +82,11 @@ def run_bash(cmd) -> str:
     if p.returncode != 0:
         raise RuntimeError('"{}" failed, return code {}\nstderr:{}'.format(cmd, p.returncode, p.stderr))
     return p.stdout
+
+
+def load_json_dir(path):
+    data = {}
+    for p in path.iterdir():
+        with p.open() as f:
+            data[p.stem] = json.load(f)
+    return data
