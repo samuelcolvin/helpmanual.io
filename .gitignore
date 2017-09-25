@@ -12,3 +12,4 @@ static/css/
 scratch/
 site-deployed/
 .vagrant
+docker/tmp

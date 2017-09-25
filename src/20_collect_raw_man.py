@@ -5,10 +5,9 @@ from pathlib import Path
 from utils import DATA_DIR
 
 
-def extract_man():
+def extract_man(dst_dir):
     src = Path('/usr/share/man/').resolve()
-    dst = DATA_DIR / 'man'
-    dst.mkdir(parents=True, exist_ok=True)
+    dst_dir.mkdir(parents=True, exist_ok=True)
     changes = []
     update = 'update' in sys.argv
 
@@ -21,7 +20,7 @@ def extract_man():
         for p in dir.iterdir():
             if not p.is_file() or p.suffix != '.gz':
                 continue
-            new_path = (dst / p.relative_to(src)).with_suffix('')
+            new_path = (dst_dir / p.relative_to(src)).with_suffix('')
             if not new_path.exists():
                 # print('{} > {}'.format(p, new_path))
                 added += 1
@@ -46,4 +45,4 @@ def extract_man():
 
 
 if __name__ == '__main__':
-    extract_man()
+    extract_man(DATA_DIR / 'man')
