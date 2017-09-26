@@ -131,9 +131,12 @@ class ManMetadata:
                 self.links[self.get_uri_name(man_id, p)] = '/' + link_to.strip('/')
                 return
             if len(head) < 2:
-                print('no description for {}: small head'.format(p))
+                print(f'no description for {p}: small head')
                 return
-            raise RuntimeError('no description for {}\n"{}"'.format(p, '\n'.join(head)))
+            else:
+                print(f'no description for {p} - not sure why!')
+                return
+                # raise RuntimeError('no description for {}\n"{}"'.format(p, '\n'.join(head)))
 
         description = re.sub(r'\\s[\-0-9]+', '', description.strip(' ')).replace('\\-', '-').strip(' -,')
         description = self.groff_escape(description)

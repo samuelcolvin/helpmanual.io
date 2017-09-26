@@ -41,7 +41,10 @@ class Generate:
         new_path = new_path.with_suffix('{}.html'.format(new_path.suffix))
         if new_path.exists():
             return
-        if p.name in {'dmsetup.8', 'latex2man.1', 'groff_hdtbl.7', 'groff.7', 'awk.1posix', 'printf.1posix'}:
+        if p.name.endswith('3pm'):
+            return new_path
+        if p.name in {'dmsetup.8', 'latex2man.1', 'groff_hdtbl.7', 'groff.7', 'awk.1posix', 'printf.1posix',
+                      'deweb.1', 'texi2html.1', 'findlib.conf.5', 'META.5', 'if_up.9freebsd'}:
             return new_path
         print(p)
         try:
@@ -54,7 +57,10 @@ class Generate:
         self.count += 1
 
     def fallback_generate_file(self, p: Path, new_path: Path):
-        text = man_to_txt(p)
+        try:
+            text = man_to_txt(p)
+        except RuntimeError:
+            return
         html = txt_to_html(text)
         new_path.parent.mkdir(parents=True, exist_ok=True)
         new_path.write_text(html)

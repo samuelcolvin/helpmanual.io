@@ -13,8 +13,6 @@ import shutil
 import threading
 from pathlib import Path
 
-from tqdm import tqdm
-
 from utils import DATA_DIR, run_bash, run
 from findhelp import process_cmd
 from hm_logging import start_logging

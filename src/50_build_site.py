@@ -207,19 +207,18 @@ class GenSite:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(template.render(**context))
         uri = re.sub('(/index)?\.html$', '', '/' + rel_path)
-        if sitemap_index is not None:
-            self.pages.insert(sitemap_index, uri)
-        else:
+        if sitemap_index is None:
             self.pages.append(uri)
+        elif sitemap_index > 0:
+            self.pages.insert(sitemap_index, uri)
 
     def generate_man_page(self, ctx):
         html_path = self.html_root / 'man' / '{raw_path}.html'.format(**ctx)
         try:
-            html_path = html_path.resolve()
+            content = html_path.read_text()
         except FileNotFoundError:
             print('{} does not exist'.format(html_path))
             return
-        content = html_path.read_text()
         if '<h2>' in content[:200]:
             content = content[content.index('<h2>'):]
         content = self.cross_linker.replace_cross_links(ctx, content)
@@ -424,7 +423,11 @@ class GenSite:
         search_data = []
         for d in self.man_data:
             man_path = man_dir / 'man' / '{raw_path}.txt'.format(**d)
-            body = man_path.read_text()
+            try:
+                body = man_path.read_text()
+            except FileNotFoundError:
+                print(f'{man_path} not found')
+                continue
             keywords = []
             for f in ['raw_path' 'extra1' 'extra2' 'extra3' 'man_comments']:
                 v = d.get(f, None)
@@ -546,7 +549,7 @@ class GenSite:
         # if len(unchanged) < 50:
         #     print('unchanged:\n  ' + '\n  '.join(unchanged))
         page_info.sort(key=lambda p: (p['date'], p['page']), reverse=True)
-        self.render('pages.json', 'pages.json.jinja', pages=page_info)
+        self.render('pages.json', 'pages.json.jinja', pages=page_info, sitemap_index=-1)
         return {p['page']: p['date'] for p in page_info}
 
     @staticmethod
@@ -558,6 +561,16 @@ class GenSite:
         return description.lstrip(' -')
 
     def generate_sitemap(self, page_dates):
+        sitemaps = []
+        for i, results in enumerate(self.sitemap_pages(page_dates)):
+            results.sort(key=lambda p: (p['priority'], p['lastmod']), reverse=True)
+            sm = f'sitemap_{i}.xml'
+            self.render(sm, 'sitemap.xml.jinja', sitemap_index=-1, pages=results)
+            sitemaps.append(sm)
+        self.render('sitemap.xml', 'sitemap_master.xml.jinja', sitemap_index=-1, sitemaps=sitemaps, now=self.now)
+
+    def sitemap_pages(self, page_dates):
+        sitemap_max_size = 40_000
         results = []
         for page in self.pages:
             if page == '/pages.json':
@@ -585,8 +598,10 @@ class GenSite:
                 'lastmod': page_dates[page],
                 'priority': '{:0.2f}'.format(p),
             })
-        results.sort(key=lambda p: (p['priority'], p['lastmod']), reverse=True)
-        self.render('sitemap.xml', 'sitemap.xml.jinja', pages=results)
+            if len(results) >= sitemap_max_size:
+                yield results
+                results = []
+        yield results
 
     def generate_extra(self):
         self.render('robots.txt', 'robots.txt.jinja')

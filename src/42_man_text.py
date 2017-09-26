@@ -39,7 +39,11 @@ class Generate:
         if new_path.exists():
             return
 
-        text = man_to_txt(p)
+        try:
+            text = man_to_txt(p)
+        except Exception as e:
+            print(f'error generating text for {p}: "{e}"')
+            return
         text = re.sub('[\r\n\t]', ' ', text)
         text = re.sub('  +', ' ', text)
         new_path.parent.mkdir(parents=True, exist_ok=True)

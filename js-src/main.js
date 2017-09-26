@@ -106,6 +106,8 @@ function go_to(uri, push){
     $dynamic.stop(true, false)
     push && history.pushState(null, '', uri)
 
+    window.scrollTo(0, 0)
+    // $('html,body').animate({scrollTop: 0})
     ga('set', 'page', uri)
     ga('send', 'pageview')
 

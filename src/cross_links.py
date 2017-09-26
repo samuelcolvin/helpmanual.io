@@ -59,6 +59,8 @@ class FindCrossLinks:
         for data in self.man_data:
             html_path = html_root / 'man' / '{raw_path}.html'.format(**data)
             html_path = html_path.resolve()
+            if not html_path.exists():
+                continue
             content = html_path.read_text()
             if '<h2>' in content[:200]:
                 content = content[content.index('<h2>'):]
@@ -99,7 +101,8 @@ class FindCrossLinks:
                 try:
                     self.links[uri]['inbound'][this_uri] = this_page_text
                 except KeyError as e:
-                    raise RuntimeError('error on {}'.format(this_uri)) from e
+                    print(f'error on {this_uri}: {e}')
+                    # raise RuntimeError(f'error on {this_uri}') from e
             if links:
                 self.links[this_uri]['outbound'] = links
         return content
