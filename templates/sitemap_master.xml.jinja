@@ -2,7 +2,7 @@
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   {% for sitemap in sitemaps %}
   <sitemap>
-    <loc>https://helpmanual.io{{ sitemap|to_uri }}</loc>
+    <loc>https://helpmanual.io/{{ sitemap }}</loc>
     <lastmod>{{ now }}</lastmod>
   </sitemap>
   {% endfor %}
