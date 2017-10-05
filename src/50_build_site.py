@@ -167,11 +167,12 @@ class GenSite:
         print('generating index page...')
         self.generate_index()
 
-        print('generating pages.json...')
-        page_dates = self.generate_page_json()
+        if not self.fast:
+            print('generating pages.json...')
+            page_dates = self.generate_page_json()
 
-        print('generating sitemap...')
-        self.generate_sitemap(page_dates)
+            print('generating sitemap...')
+            self.generate_sitemap(page_dates)
 
         print('generating extras...')
         self.generate_extra()

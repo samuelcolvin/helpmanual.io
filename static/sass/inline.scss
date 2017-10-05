@@ -416,3 +416,60 @@ a.disabled {
     //background-color: green;
   }
 }
+
+$ad-notice: #4caf50;
+
+.bsa-cpc {
+  height: 32px;
+  font-size: 14px;
+  #_default_ {
+    padding: 10px 14px 0;
+  }
+
+  .default-ad {
+    display: none;
+  }
+
+  ._default_ {
+    display: inline;
+    overflow: hidden;
+    //line-height: 1;
+     > * {
+      vertical-align: middle;
+    }
+  }
+
+  a {
+    color: #fff;
+    text-decoration: none;
+    transition: .5s ease;
+    &:hover {
+      color: map-get($colour-grid, "lighten-4");
+    }
+  }
+
+  .default-image {
+    display: none;
+  }
+
+  .default-title {
+    position: relative;
+    margin-left: 8px;
+    &:after {
+      content: " — ";
+    }
+    &:before {
+      position: relative;
+      top: -1px;
+      left: -8px;
+      padding: 2px 5px;
+      border: solid 1px $ad-notice;
+      border-radius: 3px;
+      color: $ad-notice;
+      content: "AD";
+      font-size: 10px;
+      font-family: Verdana, sans-serif;
+      //line-height: 1;
+    }
+  }
+}

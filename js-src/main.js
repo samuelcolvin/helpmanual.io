@@ -121,6 +121,15 @@ function go_to(uri, push){
   return false
 }
 
+function bsa_ads () {
+  $('script[id*="CKYDVKJJ"]').remove()
+  window._bsa.init('default', 'CKYDVKJJ', 'placement:helpmanualio', {
+    target: '.bsa-cpc',
+    align: 'horizontal',
+    disable_css: true,
+  })
+}
+
 function google_ads () {
   if (!window.adsbygoogle) {
     // adsbygoogle js isn't loaded yet (or is blocked)
@@ -134,6 +143,7 @@ function google_ads () {
 function page_change() {
   setTimeout(() => $('#search').focus(), 50)
   google_ads()
+  bsa_ads()
   let $a = $('a')
   $a.unbind('click')
   $a.click(function () {
