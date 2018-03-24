@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.6
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -185,9 +186,9 @@ class GenSite:
         hashed_url = self.hashed_static_files.get(path)
         if hashed_url is None:
             content = file_path.read_bytes()
-            hash = hashlib.md5(content).hexdigest()
-            name_parts = file_path.stem, '.' + hash[:15], file_path.suffix
-            new_path = file_path.parent / ''.join(name_parts)
+            hashhex = hashlib.md5(content).hexdigest()
+            new_name = file_path.stem + '.' + hashhex[:15] + file_path.suffix
+            new_path = file_path.parent / new_name
             new_path.write_bytes(content)
             hashed_url = '/{}'.format(new_path.relative_to(self.site_dir))
             self.hashed_static_files[path] = hashed_url

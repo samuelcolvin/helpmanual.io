@@ -19,14 +19,6 @@ help for `bzmore` should be correct
 * full build command with vagrant
 * add json ld
 
-To deploy
-
-```
-source env/bin/activate
-./src/50_build_site.py
-time aws s3 --profile personal sync site/ s3://helpmanual.io/ --region us-east-1 --delete
-```
-
 To watch js:
 ```
 yarn run webpack-watch

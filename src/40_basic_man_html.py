@@ -5,6 +5,10 @@ from pathlib import Path
 import man2html
 from utils import man_to_txt, txt_to_html
 
+SKIP = {
+    'dmsetup.8', 'latex2man.1', 'groff_hdtbl.7', 'groff.7', 'awk.1posix', 'printf.1posix',
+    'deweb.1', 'texi2html.1', 'findlib.conf.5', 'META.5', 'if_up.9freebsd'
+}
 
 class Generate:
     def __init__(self):
@@ -43,8 +47,7 @@ class Generate:
             return
         if p.name.endswith('3pm'):
             return new_path
-        if p.name in {'dmsetup.8', 'latex2man.1', 'groff_hdtbl.7', 'groff.7', 'awk.1posix', 'printf.1posix',
-                      'deweb.1', 'texi2html.1', 'findlib.conf.5', 'META.5', 'if_up.9freebsd'}:
+        if p.name in SKIP:
             return new_path
         print(p)
         try:

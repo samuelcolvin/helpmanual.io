@@ -2,6 +2,11 @@
 
 Tools for building [helpmanual.io](https://helpmanual.io).
 
-To run vagrant command:
 
-    time vagrant ssh -c "/vagrant/src/20_collect_raw_man.py"
+To deploy
+
+```
+source env/bin/activate
+./src/50_build_site.py
+aws s3 sync site/ s3://helpmanual.io/ --region us-east-1 --delete
+```
