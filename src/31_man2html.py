@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import re
 import subprocess
 import sys
@@ -13,8 +14,8 @@ def to_ansi(name):
         'TERM': 'xterm-256color',
         'LANG': 'en_GB.UTF-8',
     }
-
-    cmd = 'script', '-e', '-q', '-c', f'man -P ul {name}', '/dev/null'
+    cmd = '/home/samuel/code/man-db/src/man', '-P', 'ul', name
+    # cmd = 'script', '-e', '-q', '-c', f'man -P ul {name}', '/dev/null'
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, timeout=2)
     body = p.stdout.replace(b'\r\n', b'\n').decode()
     Path('file.raw').write_text(body)
@@ -27,11 +28,13 @@ heading = re.compile(r'^\x1b\[1m(.+)\x1b\[0m')
 seven_spaces = re.compile(r'^ {7}')
 three_spaces = re.compile(r'^ {3}')
 start_space = re.compile(r'^ +')
+multi_space = re.compile(r'(\S) {2,}(\S)')
+repeat_div = re.compile(r'<div>\n<div class="i(\d+)">\n(.+)\n</div>\n</div>')
 
 regexes = [
     (re.compile(r'\x1b\[1m(.+?)\x1b\[0m'), r'<b>\1</b>'),
     (re.compile(r'\x1b\[4m(.+?)\x1b\[24m'), r'<u>\1</u>'),
-    (re.compile(r'\x1b\[7m(.+?)\x1b\[0m'), r'<span class="bu">\1</span>'),
+    (re.compile(r'\x1b\[7m(.+?)\x1b\[0m'), r'<i>\1</i>'),
     (re.compile(r'</([bu])>( *)<\1>'), r'\2'),
 ]
 
@@ -45,16 +48,16 @@ template = """
 <style>
 body {
   word-wrap: break-word;
-  font-family: monospace;
-  color: #AAAAAA;
-  background-color: #000000;
+  font-family: 'Ubuntu Mono', monospace;
+  color: #d3d7cf;
+  background-color: #232627;
 }
-.c {
-  white-space: pre-wrap;
-  margin-left: 3.5rem;
+div {
+  margin: 0 0 1rem 3.5rem;
 }
 .dedent {
   margin-left: 3.5rem;
+  display: block
 }
 .inv_foreground { color: #000000; }
 .inv_background { background-color: #AAAAAA; }
@@ -75,9 +78,10 @@ h4 {
 .table-line {
   color: #4fc3f7
 }
-.bu {
+i {
   font-weight: 700;
   text-decoration: underline;
+  font-style: normal;
 }
 {{styles}}
 </style>
@@ -93,11 +97,19 @@ def strip_ansi(value):
     return ansi_re.sub('', value)
 
 
+def nbsp(m):
+    start, finish = m.span()
+    spaces = finish - start - 2
+    b, e = m.groups()
+    return b + ('&nbsp;' * spaces) + e
+
+
 def replace_ansi(ansi):
     for pattern, special in html_escapes.items():
         ansi = ansi.replace(pattern, special)
     for regex, rep in regexes:
         ansi = regex.sub(rep, ansi)
+    ansi = multi_space.sub(nbsp, ansi)
     return ansi
 
 
@@ -113,23 +125,24 @@ def ansi_to_html(ansi):
         for indent in range(20, 0, -1):
             regex = re.compile('^ {%s}' % (7 + indent))
             if regex.search(line_):
-                lines.append(f'<div class="indent-{indent}">{regex.sub("", line_)}</div>')
+                lines.append(f'<div class="i{indent}">\n  {regex.sub("", line_)}\n</div>\n')
                 return
+
         if seven_spaces.search(line_):
             # normal line
-            lines.append(seven_spaces.sub('', line_ + '\n'))
+            lines.append(f'  {seven_spaces.sub("", line_)}\n')
         elif three_spaces.search(line_):
-            lines.append(f'<h4>{three_spaces.sub("", line_)}</h4>')
+            lines.append(f'<h4>{three_spaces.sub("", line_)}</h4>\n')
         else:
             # line is weird and has non standard indent, could use and h4 here?
-            lines.append(f'<div class="dedent">{line_}</div>')
+            lines.append(f'<div class="dedent">\n  {line_}\n</div>\n')
 
     in_para = False
     in_section = False
     for line in ansi.split('\n')[1:-2]:
         if heading.search(line):
             if in_para:
-                lines.append('</pre>\n')
+                lines.append('</div>\n')
                 in_para = False
             if in_section:
                 lines.append('</section>\n\n')
@@ -138,24 +151,31 @@ def ansi_to_html(ansi):
             in_section = True
         elif line == '':
             if in_para:
-                lines.append('</pre>\n')
+                lines.append('</div>\n')
                 in_para = False
         else:
             if not in_para:
-                lines.append('<pre class="c">')
+                lines.append('<div>\n')
                 in_para = True
             add_line(line)
 
     if in_section:
         lines.append('</section>\n')
     html = ''.join(lines)
+    html = repeat_div.sub(r'<div class="ii\1">\n\2\n</div>', html)
 
     m = ansi_re.search(html)
     if m:
         debug(html[m.start() - 100:m.end() + 100])
         raise RuntimeError('ansi strings found in html')
     html = template.replace('{{html}}', html)
-    styles = '\n'.join(f'.indent-{v} {{margin-left: {v/2:0.1f}rem;}}' for v in range(1, 21))
+    styles = '\n'.join(
+        (
+            f'.i{v} {{margin-left: {v / 2:0.1f}rem;}}\n'
+            f'.ii{v} {{margin-left: {3.5 + v / 2:0.1f}rem;}}'
+        )
+        for v in range(1, 21)
+    )
     return html.replace('{{styles}}', styles)
 
 
