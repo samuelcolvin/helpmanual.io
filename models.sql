@@ -14,8 +14,8 @@ create table raw_items (
   raw bytea,
   primary_text text,
   secondary_text text,
+  -- TODO last modified from helpmanual.io
   unique (type, ref, version)
-  -- TODO tsv?
 );
 
 create table built_items (

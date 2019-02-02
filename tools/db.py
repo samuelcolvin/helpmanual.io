@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 from pathlib import Path
 
@@ -7,6 +8,12 @@ from buildpg import asyncpg
 from .commands import command
 
 pg_dsn = 'postgres://postgres@localhost:5432/helpmanual'
+
+
+def to_json(_v=None, **kwargs):
+    data = _v or kwargs
+    if data:
+        return json.dumps({k: v for k, v in data.items() if v is not None})
 
 
 @command

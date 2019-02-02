@@ -12,10 +12,7 @@ from buildpg import Values
 from devtools import debug
 
 from .commands import command
-
-
-def to_json(**kwargs):
-    return json.dumps({k: v for k, v in kwargs.items() if v is not None})
+from .db import to_json
 
 
 async def load_exec_raw(pg):
@@ -39,7 +36,7 @@ async def load_exec_raw(pg):
                 ref=name,
                 name=name,
                 hash=hash,
-                extra=item and to_json(**{f: item.get(f) for f in extra_fields}),
+                extra=item and to_json({f: item.get(f) for f in extra_fields}),
                 primary_text=item and item['help_msg'],
                 secondary_text=item and item['version_msg'],
             )
@@ -66,47 +63,6 @@ async def load_exec_raw(pg):
         print(f'items after insertion: {await conn.fetchval("select count(*) from raw_items")}')
 
 
-async def load_man_raw(pg):
-    with Path('data/man_metadata.json').open() as f:
-        man_data = json.load(f)
-
-    print(f'loading {len(man_data)} man pages...')
-    root_dir = Path('data/man')
-    values = []
-    refs = set()
-    for item in man_data:
-        ref = '{}/{}'.format(item['man_id'], item['uri'].rsplit('/', 1)[1])
-        if ref in refs:
-            debug(item)
-            continue
-        refs.add(ref)
-        raw = (root_dir / item['raw_path']).read_bytes()
-        values.append(
-            Values(
-                ref=ref,
-                name=item['name'],
-                type='man',
-                hash=hashlib.sha256(raw).hexdigest(),
-                man_id=item['man_id'],
-                extra=to_json(
-                    extra1=item.get('extra1'),
-                    extra2=item.get('extra2'),
-                    short_description=item.get('description'),
-                ),
-                raw=raw
-            )
-        )
-    del man_data
-
-    async with pg.acquire() as conn:
-        async with conn.transaction():
-            print(f'items before insertion: {await conn.fetchval("select count(*) from raw_items")}')
-
-            await conn.executemany_b('insert into raw_items (:values__names) values :values', values)
-
-            print(f'items after insertion: {await conn.fetchval("select count(*) from raw_items")}')
-
-
 async def load_package_raw(pg):
     print('loading packages...')
     extra_fields = 'automatic', 'dlocate-ls', 'dlocate-lsbin', 'dlocate-lsman', 'extra'
@@ -125,7 +81,7 @@ async def load_package_raw(pg):
                 name=name,
                 type='package',
                 hash=hashlib.sha256(item['apt-show'].encode()).hexdigest(),
-                extra=to_json(**{f: item.get(f) for f in extra_fields}),
+                extra=to_json({f: item.get(f) for f in extra_fields}),
                 primary_text=item['apt-show'],
             )
         )
@@ -142,5 +98,4 @@ async def load_package_raw(pg):
 @command
 async def load_legacy(pg):
     await load_exec_raw(pg)
-    await load_man_raw(pg)
     await load_package_raw(pg)
