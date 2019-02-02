@@ -22,22 +22,6 @@ def to_ansi(name):
     # debug(body[:2000])
     return body
 
-
-ansi_re = re.compile(r'\x1b\[(?:\d|;)*[a-zA-Z]')
-heading = re.compile(r'^\x1b\[1m(.+)\x1b\[0m')
-seven_spaces = re.compile(r'^ {7}')
-three_spaces = re.compile(r'^ {3}')
-start_space = re.compile(r'^ +')
-multi_space = re.compile(r'(\S) {2,}(\S)')
-repeat_div = re.compile(r'<div>\n<div class="i(\d+)">\n(.+)\n</div>\n</div>')
-
-regexes = [
-    (re.compile(r'\x1b\[1m(.+?)\x1b\[0m'), r'<b>\1</b>'),
-    (re.compile(r'\x1b\[4m(.+?)\x1b\[24m'), r'<u>\1</u>'),
-    (re.compile(r'\x1b\[7m(.+?)\x1b\[0m'), r'<i>\1</i>'),
-    (re.compile(r'</([bu])>( *)<\1>'), r'\2'),
-]
-
 html_escapes = {'&': '&amp;', '<': '&lt;', '>': '&gt;'}
 template = """
 <!DOCTYPE html>
@@ -93,6 +77,26 @@ i {
 """
 
 
+ansi_re = re.compile(r'\x1b\[(?:\d|;)*[a-zA-Z]')
+heading = re.compile(r'^\x1b\[1m(.+)\x1b\[0m')
+seven_spaces = re.compile(r'^ {7}')
+three_spaces = re.compile(r'^ {3}')
+start_space = re.compile(r'^ +')
+multi_space = re.compile(r'(\S) {2,}(\S)')
+table_border = re.compile('([┌┬┐└┴┘├┼┤─│]+)')
+underline_space = re.compile('<u>[^<]*? [^<]*?</u>')
+spaces = re.compile('( +)')
+
+repeat_div = re.compile(r'<div>\n<div class="i(\d+)">\n(.+)\n</div>\n</div>')
+
+regexes = [
+    (re.compile(r'\x1b\[1m(.+?)\x1b\[0m'), r'<b>\1</b>'),
+    (re.compile(r'\x1b\[4m(.+?)\x1b\[24m'), r'<u>\1</u>'),
+    (re.compile(r'\x1b\[7m(.+?)\x1b\[0m'), r'<i>\1</i>'),
+    (re.compile(r'</([bu])>( *)<\1>'), r'\2'),
+]
+
+
 def strip_ansi(value):
     return ansi_re.sub('', value)
 
@@ -104,13 +108,19 @@ def nbsp(m):
     return b + ('&nbsp;' * spaces) + e
 
 
-def replace_ansi(ansi):
+def replace_ansi(line):
     for pattern, special in html_escapes.items():
-        ansi = ansi.replace(pattern, special)
+        line = line.replace(pattern, special)
     for regex, rep in regexes:
-        ansi = regex.sub(rep, ansi)
-    ansi = multi_space.sub(nbsp, ansi)
-    return ansi
+        line = regex.sub(rep, line)
+    line = multi_space.sub(nbsp, line)
+
+    # convert table borders to a funky colour, will this mess up with just pipe operators?
+    line = table_border.sub(r'<span class="table-line">\1</span>', line)
+
+    # spaces shouldn't be underlined
+    line = underline_space.sub(lambda m: spaces.sub(r'</u>\1<u>', m.group(0)), line)
+    return line
 
 
 def ansi_to_html(ansi):
@@ -118,9 +128,6 @@ def ansi_to_html(ansi):
 
     def add_line(line_):
         line_ = replace_ansi(line_)
-
-        # convert table borders to a funky colour, will this mess up with just pipe operators?
-        line_ = re.sub('([┌┬┐└┴┘├┼┤─│]+)', r'<span class="table-line">\1</span>', line_)
 
         for indent in range(20, 0, -1):
             regex = re.compile('^ {%s}' % (7 + indent))
