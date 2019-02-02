@@ -1,28 +1,13 @@
 #!/usr/bin/env python3
+import json
 import re
-import subprocess
 import sys
+from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 from devtools import debug
 from tqdm import tqdm
-
-
-def man_to_ansi(path):
-    env = {
-        'COLUMNS': '1000',
-        'LINES': '100',
-        'TERM': 'xterm-256color',
-        'LANG': 'en_GB.UTF-8',
-    }
-    cmd = '/home/samuel/code/man-db/src/man', '-P', 'ul', path
-    # cmd = 'script', '-e', '-q', '-c', f'man -P ul {name}', '/dev/null'
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, timeout=2)
-    body = p.stdout.replace(b'\r\n', b'\n').decode()
-    # Path('file.raw').write_text(body)
-    # debug(body[:2000])
-    return body
 
 
 html_escapes = {'&': '&amp;', '<': '&lt;', '>': '&gt;'}
@@ -42,6 +27,7 @@ body {
 }
 div {
   margin: 0 0 1rem 0;
+  white-space: pre-wrap;
 }
 .dedent {
   margin-left: -3.5rem;
@@ -80,6 +66,9 @@ i {
   text-decoration: underline;
   font-style: normal;
 }
+a {
+  color: #48aaff;
+}
 {{styles}}
 </style>
 </head>
@@ -88,6 +77,104 @@ i {
 </body>
 </html>
 """
+
+link_regex = re.compile(r'(https?://\S+|www\.\S+)')
+other_man_regexes = [
+    re.compile(r'([a-zA-Z]{2,}) ?\((\d)\)'),
+    re.compile(r'<u>([a-zA-Z]{2,})</u> ?\((\d)\)'),
+    re.compile(r'<b>([a-zA-Z]{2,})</b> ?\((\d)\)'),
+    re.compile(r'<i>([a-zA-Z]{2,})</i> ?\((\d)\)'),
+]
+include_h_regex = re.compile(r'&lt;(([a-zA-Z]{2,})\.h)&gt;')
+
+INVALID_URLS = {
+    r'pastebin',
+    r'localhost',
+    r'example.',
+    r'www.example',
+    r'site.com',
+    r'www.site.com',
+    r'host.',
+    r'HOST',
+    r'USER@HOST',
+    r'foo.com',
+    r'foo.bar',
+    r'bar.com',
+    r'api.github.com',
+}
+
+
+def replace_link(m):
+    link = m.group(0)
+    if any(url in link for url in INVALID_URLS):
+        return link
+    if not link.startswith('http'):
+        link = 'http://' + link
+    return f'<a href="{link}" target="_blank">{m.group(0)}</a>'
+
+
+# currently has to be global
+
+with Path('data/man_metadata.json').open() as f:
+    man_data = json.load(f)
+man_uris = {d['uri'] for d in man_data}
+
+
+def find_links(html, this_uri):
+    html = link_regex.sub(replace_link, html)
+    missing = Counter()
+
+    def replace_other_man(m):
+        name, group = m.groups()
+        group = int(group)
+
+        # special case:
+        if (name, group) == ('ImageMagick', 1):
+            return f'<a href="/man1/convert">ImageMagick(1)</a>'
+
+        groups = [group] + [g for g in range(1, 10) if g != group]
+        for suffix in ['', '-ssl', '-tcl']:
+            for g in groups:
+                if name == 'ImageMagick':
+                    uri = f'/man{g}/convert'
+                else:
+                    uri = f'/man{g}/{name}{suffix}'
+                if uri != this_uri and uri in man_uris:
+                    return f'<a href="{uri}">{name}({g})</a>'
+
+        if group == 1:
+            # don't care about other missing packages
+            missing[name] += 1
+            # missing[f'{name}({group})'] += 1
+        return m.group(0)
+
+    for regex in other_man_regexes:
+        html = regex.sub(replace_other_man, html)
+
+    def replace_include_h(m):
+        name = m.group(2).replace('/', '_')
+        inc_uris = [
+            f'/man3/{name}.h',
+            f'/man2/{name}.h',
+            f'/man7/{name}.h',
+            f'/man7/{name}.h-posix',
+            f'/man3/{name}',
+            f'/man2/{name}',
+            f'/man7/{name}',
+            f'/man7/{name}-posix',
+            f'/man2/{name[4:]}'
+        ]
+
+        try:
+            link = next(v for v in inc_uris if v in man_uris)
+        except StopIteration:
+            # missing[f'{name}(?)'] += 1
+            return m.group(0)
+        else:
+            return f'&lt;<a href="{link}">{m.group(1)}</a>&gt;'
+
+    html = include_h_regex.sub(replace_include_h, html)
+    return html, missing
 
 
 ansi_re = re.compile(r'\x1b\[(?:\d|;)*[a-zA-Z]')
@@ -108,13 +195,6 @@ def strip_ansi(value):
     return ansi_re.sub('', value)
 
 
-def nbsp(m):
-    start, finish = m.span()
-    spaces = finish - start - 2
-    b, e = m.groups()
-    return b + ('&nbsp;' * spaces) + e
-
-
 def replace_ansi(line):
     for pattern, special in html_escapes.items():
         line = line.replace(pattern, special)
@@ -130,7 +210,6 @@ def replace_ansi(line):
 
 
 details_section = re.compile(r'^(\S.{4}) {2}(\S.+)')
-word_spaces_word = re.compile(r'(\S) {2,}(\S)')
 
 
 def rep_spaces(line_):
@@ -138,23 +217,23 @@ def rep_spaces(line_):
     if m_:
         c1, c2 = m_.groups()
         return (
-            f'  <div class="details">\n'
-            f'    <div class="d1">{c1.strip(" ")}</div>\n'
-            f'    <div class="d2">{word_spaces_word.sub(nbsp, c2)}</div>\n'
-            f'  </div>\n'
+            f'<div class="details">'
+            f'<div class="d1">{c1.strip(" ")}</div>'
+            f'<div class="d2">{c2}</div>'
+            f'</div>'
         )
     else:
-        return f'  {word_spaces_word.sub(nbsp, line_)}\n'
+        return f'{line_}\n'
 
 
 seven_spaces = re.compile(r'^ {7}(.+)')
 three_spaces = re.compile(r'^ {3}(.+)')
 start_space = re.compile(r'^ +')
 
-repeat_div = re.compile(r'<div>\n(<div class="i\d+">\n.+\n</div>)\n</div>')
+repeat_div = re.compile(r'<div>(<div class="i\d+">.+</div>)</div>')
 
 
-def ansi_to_html(ansi):
+def ansi_to_html(ansi: str):
     lines = []
 
     def add_line(line_):
@@ -163,7 +242,7 @@ def ansi_to_html(ansi):
         for indent in range(20, 0, -1):
             regex = re.compile('^ {%s}' % (7 + indent))
             if regex.search(line_):
-                lines.append(f'<div class="i{indent}">\n{rep_spaces(regex.sub("", line_))}</div>\n')
+                lines.append(f'<div class="i{indent}">{rep_spaces(regex.sub("", line_))}</div>')
                 return
 
         m_ = seven_spaces.search(line_)
@@ -174,7 +253,7 @@ def ansi_to_html(ansi):
 
         m_ = three_spaces.search(line_)
         if m_:
-            lines.append(f'<h4>{word_spaces_word.sub(nbsp, m_.group(1))}</h4>\n')
+            lines.append(f'<h4>{m_.group(1)}</h4>\n')
             return
 
         # line is weird and has non standard indent, could use and h4 here?
@@ -182,7 +261,7 @@ def ansi_to_html(ansi):
             # long first or last line, ignore
             return
 
-        lines.append(f'<div class="dedent">\n{rep_spaces(line_)}</div>\n')
+        lines.append(f'<div class="dedent">{rep_spaces(line_)}</div>\n')
 
     in_para = False
     in_section = False
@@ -202,7 +281,7 @@ def ansi_to_html(ansi):
                 in_para = False
         else:
             if not in_para:
-                lines.append('<div>\n')
+                lines.append('<div>')
                 in_para = True
             add_line(line)
 
@@ -224,22 +303,26 @@ def pretty_html(html):
     return html.replace('{{styles}}', styles)
 
 
-def main(path: str, save_path=None):
-    ansi = man_to_ansi(path)
+def main(path: Path, save_path: Path = None, this_uri: str = '<missing>'):
+    ansi = path.read_text()
     html = ansi_to_html(ansi)
+    html, missing_links = find_links(html, this_uri)
     if not save_path:
         save_path = Path('file.html')
         # make it pretty
         html = pretty_html(html)
     save_path.write_text(html)
+    return missing_links
 
 
 def run_all():
-    src_path = Path('data/man').resolve()
+    src_path = Path('data/ansi').resolve()
     dst_path = Path('data/html/man')
     dst_path.mkdir(parents=True, exist_ok=True)
     dst_path = dst_path.resolve()
 
+    count = 0
+    missing = Counter()
     man_group = 1
     with ProcessPoolExecutor(max_workers=12) as executor:
         futures = {}
@@ -251,23 +334,27 @@ def run_all():
             d_count = 0
             for path in dir_path.iterdir():
                 new_path = dst_path / path.relative_to(src_path).with_suffix('{}.html'.format(path.suffix))
-                futures[executor.submit(main, str(path), new_path)] = path
+                this_uri = f'/man{man_group}/{path.name}'
+                futures[executor.submit(main, path, new_path, this_uri)] = path
                 d_count += 1
             print(f'{dir_path}: loaded {d_count} tasks...')
             man_group += 1
 
-        count = 0
         for future in tqdm(as_completed(futures), total=len(futures)):
             path = futures[future]
             try:
-                future.result()
+                missing_ = future.result()
             except Exception as e:
                 raise RuntimeError(f'error in {path}') from e
             else:
+                missing.update(missing_)
                 count += 1
                 # print(count, path)
 
     print(f'===\nTotal {count} generated files')
+    print('most common missing links:')
+    for name, count in sorted(missing.items(), key=lambda i: i[1], reverse=True)[:200]:
+        print(f'{name:>25}: {count}')
 
 
 if __name__ == '__main__':
