@@ -13,9 +13,11 @@
             (The comments found at the beginning of the groff file "{{ raw_path }}".)
           </comment>
         {% endif %}
+        <div class="man-raw">
         <!-- man page content { -->
-        {{ content|safe }}
+          {{ content|safe }}
         <!-- } end of man page content -->
+        </div>
       </div>
 
       <div class="sidebar">

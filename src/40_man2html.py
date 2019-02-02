@@ -2,23 +2,25 @@
 import re
 import subprocess
 import sys
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 from devtools import debug
+from tqdm import tqdm
 
 
-def to_ansi(name):
+def man_to_ansi(path):
     env = {
         'COLUMNS': '1000',
         'LINES': '100',
         'TERM': 'xterm-256color',
         'LANG': 'en_GB.UTF-8',
     }
-    cmd = '/home/samuel/code/man-db/src/man', '-P', 'ul', name
+    cmd = '/home/samuel/code/man-db/src/man', '-P', 'ul', path
     # cmd = 'script', '-e', '-q', '-c', f'man -P ul {name}', '/dev/null'
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, timeout=2)
     body = p.stdout.replace(b'\r\n', b'\n').decode()
-    Path('file.raw').write_text(body)
+    # Path('file.raw').write_text(body)
     # debug(body[:2000])
     return body
 
@@ -36,26 +38,24 @@ body {
   font-family: 'Ubuntu Mono', monospace;
   color: #d3d7cf;
   background-color: #232627;
+  margin-left: 4rem;
 }
 div {
-  margin: 0 0 1rem 3.5rem;
+  margin: 0 0 1rem 0;
 }
 .dedent {
-  margin-left: 3.5rem;
+  margin-left: -3.5rem;
   display: block
 }
 .inv_foreground { color: #000000; }
 .inv_background { background-color: #AAAAAA; }
-h3 {
+h3, h4 {
   padding: 0;
-  margin: 0;
+  margin: 0 0 0 -3.5rem;
   line-height: 1;
   font-size: 1.1rem;
 }
 h4 {
-  padding: 0;
-  margin: 0 0 1rem;
-  line-height: 1;
   font-size: 1rem;
   font-weight: 700;
   margin-left: -2rem;
@@ -129,30 +129,33 @@ def replace_ansi(line):
     return line
 
 
-word_spaces_word = re.compile(r'(\S) {2,}(\S)')
-seven_spaces = re.compile(r'^ {7}(.+)')
-three_spaces = re.compile(r'^ {3}')
-start_space = re.compile(r'^ +')
 details_section = re.compile(r'^(\S.{4}) {2}(\S.+)')
+word_spaces_word = re.compile(r'(\S) {2,}(\S)')
 
-repeat_div = re.compile(r'<div>\n<div class="i(\d+)">\n(.+)\n</div>\n</div>')
+
+def rep_spaces(line_):
+    m_ = details_section.search(line_)
+    if m_:
+        c1, c2 = m_.groups()
+        return (
+            f'  <div class="details">\n'
+            f'    <div class="d1">{c1.strip(" ")}</div>\n'
+            f'    <div class="d2">{word_spaces_word.sub(nbsp, c2)}</div>\n'
+            f'  </div>\n'
+        )
+    else:
+        return f'  {word_spaces_word.sub(nbsp, line_)}\n'
+
+
+seven_spaces = re.compile(r'^ {7}(.+)')
+three_spaces = re.compile(r'^ {3}(.+)')
+start_space = re.compile(r'^ +')
+
+repeat_div = re.compile(r'<div>\n(<div class="i\d+">\n.+\n</div>)\n</div>')
 
 
 def ansi_to_html(ansi):
     lines = []
-
-    def rep_spaces(line_):
-        m_ = details_section.search(line_)
-        if m_:
-            c1, c2 = m_.groups()
-            return (
-                f'<div class="details">\n'
-                f'  <div class="d1">{c1.strip(" ")}</div>\n'
-                f'  <div class="d2">{word_spaces_word.sub(nbsp, c2)}</div>\n'
-                f'</div>'
-            )
-        else:
-            return word_spaces_word.sub(nbsp, line_)
 
     def add_line(line_):
         line_ = replace_ansi(line_)
@@ -160,19 +163,26 @@ def ansi_to_html(ansi):
         for indent in range(20, 0, -1):
             regex = re.compile('^ {%s}' % (7 + indent))
             if regex.search(line_):
-                lines.append(f'<div class="i{indent}">\n  {rep_spaces(regex.sub("", line_))}\n</div>\n')
+                lines.append(f'<div class="i{indent}">\n{rep_spaces(regex.sub("", line_))}</div>\n')
                 return
 
-        m = seven_spaces.search(line_)
-        if m:
+        m_ = seven_spaces.search(line_)
+        if m_:
             # normal line
-            content = m.group(1)
-            lines.append(f'  {rep_spaces(content)}\n')
-        elif three_spaces.search(line_):
-            lines.append(f'<h4>{rep_spaces(three_spaces.sub("", line_))}</h4>\n')
-        else:
-            # line is weird and has non standard indent, could use and h4 here?
-            lines.append(f'<div class="dedent">\n  {rep_spaces(line_)}\n</div>\n')
+            lines.append(f'{rep_spaces(m_.group(1))}')
+            return
+
+        m_ = three_spaces.search(line_)
+        if m_:
+            lines.append(f'<h4>{word_spaces_word.sub(nbsp, m_.group(1))}</h4>\n')
+            return
+
+        # line is weird and has non standard indent, could use and h4 here?
+        if len(line) >= 975:
+            # long first or last line, ignore
+            return
+
+        lines.append(f'<div class="dedent">\n{rep_spaces(line_)}</div>\n')
 
     in_para = False
     in_section = False
@@ -199,47 +209,70 @@ def ansi_to_html(ansi):
     if in_section:
         lines.append('</section>\n')
     html = ''.join(lines)
-    html = repeat_div.sub(r'<div class="ii\1">\n\2\n</div>', html)
+    html = repeat_div.sub(r'\1', html)
 
     m = ansi_re.search(html)
     if m:
         debug(html[m.start() - 100:m.end() + 100])
         raise RuntimeError('ansi strings found in html')
+    return html
+
+
+def pretty_html(html):
     html = template.replace('{{html}}', html)
-    styles = '\n'.join(
-        (
-            f'.i{v} {{margin-left: {v / 2:0.1f}rem;}}\n'
-            f'.ii{v} {{margin-left: {3.5 + v / 2:0.1f}rem;}}'
-        )
-        for v in range(1, 21)
-    )
+    styles = '\n'.join(f'.i{v} {{margin-left: {v / 2:0.1f}rem;}}\n' for v in range(1, 21))
     return html.replace('{{styles}}', styles)
 
 
-def main(path: Path, save=False):
-    command_name = path.name.split('.', 1)[0]
-    ansi = to_ansi(command_name)
+def main(path: str, save_path=None):
+    ansi = man_to_ansi(path)
     html = ansi_to_html(ansi)
-    if save:
-        Path('file.html').write_text(html)
+    if not save_path:
+        save_path = Path('file.html')
+        # make it pretty
+        html = pretty_html(html)
+    save_path.write_text(html)
 
 
 def run_all():
-    count = 0
-    for p in Path('/usr/share/man/man1').iterdir():
-        try:
-            main(p)
-        except Exception as e:
-            raise RuntimeError(f'error in {p}') from e
-        else:
-            count += 1
-            print(count, p)
-    print(f'processed {count} files')
+    src_path = Path('data/man').resolve()
+    dst_path = Path('data/html/man')
+    dst_path.mkdir(parents=True, exist_ok=True)
+    dst_path = dst_path.resolve()
+
+    man_group = 1
+    with ProcessPoolExecutor(max_workers=12) as executor:
+        futures = {}
+        while True:
+            dir_path = src_path / f'man{man_group}'
+            if not dir_path.exists():
+                break
+
+            d_count = 0
+            for path in dir_path.iterdir():
+                new_path = dst_path / path.relative_to(src_path).with_suffix('{}.html'.format(path.suffix))
+                futures[executor.submit(main, str(path), new_path)] = path
+                d_count += 1
+            print(f'{dir_path}: loaded {d_count} tasks...')
+            man_group += 1
+
+        count = 0
+        for future in tqdm(as_completed(futures), total=len(futures)):
+            path = futures[future]
+            try:
+                future.result()
+            except Exception as e:
+                raise RuntimeError(f'error in {path}') from e
+            else:
+                count += 1
+                # print(count, path)
+
+    print(f'===\nTotal {count} generated files')
 
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
         file_path = Path(sys.argv[1])
-        main(file_path, save=True)
+        main(file_path)
     else:
         run_all()

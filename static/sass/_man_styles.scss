@@ -1,0 +1,76 @@
+@import 'variables';
+
+$man-indent: 3.5rem;
+
+.terminal-box {
+  padding: 0 0 0 $man-indent + 0.5rem;
+}
+
+.terminal-like {
+  margin-bottom: 20px;
+  color: $term-text-colour;
+  line-height: 1em;
+  word-wrap: break-word;
+  h3, h4, h5 {
+    margin-left: -$man-indent;
+    color: map-get($colour-grid, "lighten-3");
+    font-size: 1.2rem;
+    margin-top: 10px;
+    margin-bottom: 4px;
+  }
+  h3 {
+    margin-bottom: 10px;
+  }
+  comment {
+    display: block;
+    padding-top: 10px;
+    color: #888;
+  }
+  pre {
+    color: $term-muted;
+    white-space: pre-wrap;
+  }
+}
+
+.man-raw {
+  div {
+    margin-bottom: 1rem;
+  }
+}
+@for $v from 1 through 20 {
+  .i#{$v} {
+    margin-left: 0rem + ($v / 2);
+  }
+}
+
+.dedent {
+  margin-left: -$man-indent;
+  display: block
+}
+
+.table-line {
+  color: map-get($colour-grid, "lighten-2");
+}
+
+.details {
+  display: flex;
+  justify-content: flex-start;
+  margin-left: 0;
+  > div {
+    margin: 0;
+  }
+  .d1 {
+    width: $man-indent;
+    flex-shrink: 0;
+  }
+}
+
+i {
+  font-weight: 700;
+  text-decoration: underline;
+  font-style: normal;
+}
+
+b, strong {
+  font-weight: 700;
+}

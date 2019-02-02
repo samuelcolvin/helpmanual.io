@@ -141,6 +141,10 @@ class GenSite:
             except Exception as e:
                 raise RuntimeError('error on {}'.format(data['uri'])) from e
             if self.fast and i > 100:
+                curl = next(d for d in self.man_data if d['uri'] == '/man1/curl')
+                self.generate_man_page(curl)
+                find = next(d for d in self.man_data if d['uri'] == '/man1/find')
+                self.generate_man_page(find)
                 break
 
         print('generating help pages...')

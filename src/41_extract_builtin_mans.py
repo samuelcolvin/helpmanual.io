@@ -49,13 +49,13 @@ class ExtractBuiltins:
             line = re.sub(' {2,}', lambda m: '&nbsp;' * len(m.group()), line)
             description.append('{}{}</p>'.format(prefix, line))
         html = """\
-<h2>NAME</h2>
+<h4>NAME</h4>
 {name} - {short_description}
-<h2>SYNOPSIS</h2>
+<h4>SYNOPSIS</h4>
 {synopsis}
-<h2>DESCRIPTION</h2>
+<h4>DESCRIPTION</h4>
 {description}
-<h2>SEE ALSO</h2>
+<h4>SEE ALSO</h4>
 <p>This is extracted from the main <a href="/man1/bash">bash</a> man page, see there for more details.</p>
 """.format(
             name=name,
