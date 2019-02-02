@@ -22,6 +22,7 @@ def to_ansi(name):
     # debug(body[:2000])
     return body
 
+
 html_escapes = {'&': '&amp;', '<': '&lt;', '>': '&gt;'}
 template = """
 <!DOCTYPE html>
@@ -62,6 +63,18 @@ h4 {
 .table-line {
   color: #4fc3f7
 }
+.details {
+  display: flex;
+  justify-content: flex-start;
+  margin-left: 0;
+}
+.details > div {
+  margin: 0;
+}
+.details .d1 { 
+  width: 3.5rem;
+  flex-shrink: 0;
+}
 i {
   font-weight: 700;
   text-decoration: underline;
@@ -79,15 +92,9 @@ i {
 
 ansi_re = re.compile(r'\x1b\[(?:\d|;)*[a-zA-Z]')
 heading = re.compile(r'^\x1b\[1m(.+)\x1b\[0m')
-seven_spaces = re.compile(r'^ {7}')
-three_spaces = re.compile(r'^ {3}')
-start_space = re.compile(r'^ +')
-multi_space = re.compile(r'(\S) {2,}(\S)')
 table_border = re.compile('([┌┬┐└┴┘├┼┤─│]+)')
 underline_space = re.compile('<u>[^<]*? [^<]*?</u>')
 spaces = re.compile('( +)')
-
-repeat_div = re.compile(r'<div>\n<div class="i(\d+)">\n(.+)\n</div>\n</div>')
 
 regexes = [
     (re.compile(r'\x1b\[1m(.+?)\x1b\[0m'), r'<b>\1</b>'),
@@ -113,7 +120,6 @@ def replace_ansi(line):
         line = line.replace(pattern, special)
     for regex, rep in regexes:
         line = regex.sub(rep, line)
-    line = multi_space.sub(nbsp, line)
 
     # convert table borders to a funky colour, will this mess up with just pipe operators?
     line = table_border.sub(r'<span class="table-line">\1</span>', line)
@@ -123,8 +129,30 @@ def replace_ansi(line):
     return line
 
 
+word_spaces_word = re.compile(r'(\S) {2,}(\S)')
+seven_spaces = re.compile(r'^ {7}(.+)')
+three_spaces = re.compile(r'^ {3}')
+start_space = re.compile(r'^ +')
+details_section = re.compile(r'^(\S.{4}) {2}(\S.+)')
+
+repeat_div = re.compile(r'<div>\n<div class="i(\d+)">\n(.+)\n</div>\n</div>')
+
+
 def ansi_to_html(ansi):
     lines = []
+
+    def rep_spaces(line_):
+        m_ = details_section.search(line_)
+        if m_:
+            c1, c2 = m_.groups()
+            return (
+                f'<div class="details">\n'
+                f'  <div class="d1">{c1.strip(" ")}</div>\n'
+                f'  <div class="d2">{word_spaces_word.sub(nbsp, c2)}</div>\n'
+                f'</div>'
+            )
+        else:
+            return word_spaces_word.sub(nbsp, line_)
 
     def add_line(line_):
         line_ = replace_ansi(line_)
@@ -132,17 +160,19 @@ def ansi_to_html(ansi):
         for indent in range(20, 0, -1):
             regex = re.compile('^ {%s}' % (7 + indent))
             if regex.search(line_):
-                lines.append(f'<div class="i{indent}">\n  {regex.sub("", line_)}\n</div>\n')
+                lines.append(f'<div class="i{indent}">\n  {rep_spaces(regex.sub("", line_))}\n</div>\n')
                 return
 
-        if seven_spaces.search(line_):
+        m = seven_spaces.search(line_)
+        if m:
             # normal line
-            lines.append(f'  {seven_spaces.sub("", line_)}\n')
+            content = m.group(1)
+            lines.append(f'  {rep_spaces(content)}\n')
         elif three_spaces.search(line_):
-            lines.append(f'<h4>{three_spaces.sub("", line_)}</h4>\n')
+            lines.append(f'<h4>{rep_spaces(three_spaces.sub("", line_))}</h4>\n')
         else:
             # line is weird and has non standard indent, could use and h4 here?
-            lines.append(f'<div class="dedent">\n  {line_}\n</div>\n')
+            lines.append(f'<div class="dedent">\n  {rep_spaces(line_)}\n</div>\n')
 
     in_para = False
     in_section = False
