@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from html import escape, unescape
 
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 import click
 
 from utils import load_json_dir

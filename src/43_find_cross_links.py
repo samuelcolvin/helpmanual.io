@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 from cross_links import FindCrossLinks
 
 if __name__ == '__main__':

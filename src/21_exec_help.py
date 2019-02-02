@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 """
 Get "--help" and "--version" (or equivalent) info from all commands.
 
